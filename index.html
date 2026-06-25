@@ -375,7 +375,8 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 ═══════════════════════════════════════ */
 #page-login {
   background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
+  align-items: center; justify-content: center;
+  min-height: 100vh;
 }
 .login-box {
   width: 380px; max-width: 90vw;
@@ -1130,8 +1131,12 @@ async function loadDashboard() {
   const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
 
   // Traer todos los pendientes
-  const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente'), orderBy('fechaVence','asc')));
-  const pendientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente')));
+  const pendientes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => {
+    const da = a.fechaVence?.toDate?.() || new Date(9999,0,1);
+    const db2 = b.fechaVence?.toDate?.() || new Date(9999,0,1);
+    return da - db2;
+  });
 
   // Traer clientes (para nombre)
   const cliSnap = await getDocs(collection(db,'clientes'));
@@ -1205,7 +1210,8 @@ window.irACliente = function(id) {
    CLIENTES
 ─────────────────────────────────────── */
 async function loadClientes() {
-  const snap = await getDocs(query(collection(db,'clientes'), orderBy('nombre','asc')));
+  const snap = await getDocs(collection(db,'clientes'));
+  const sortedDocs = snap.docs.sort((a,b) => a.data().nombre?.localeCompare(b.data().nombre));
   const listEl = document.getElementById('clients-list');
   document.getElementById('clients-sub').textContent = `${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
 
@@ -1217,7 +1223,7 @@ async function loadClientes() {
   // Para cada cliente, contar urgentes
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   let html = '';
-  for (const d of snap.docs) {
+  for (const d of sortedDocs) {
     const c = d.data();
     const q2 = query(collection(db,'pendientes'), where('clienteId','==',d.id), where('estado','==','pendiente'));
     const ps  = await getDocs(q2);
@@ -1316,10 +1322,13 @@ window.loadClienteDetalle = async function(id) {
   const psSnap = await getDocs(query(
     collection(db,'pendientes'),
     where('clienteId','==',id),
-    where('estado','==','pendiente'),
-    orderBy('fechaVence','asc')
+    where('estado','==','pendiente')
   ));
-  const pendientes = psSnap.docs.map(d => ({ id:d.id, ...d.data() }));
+  const pendientes = psSnap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => {
+    const da = a.fechaVence?.toDate?.() || new Date(9999,0,1);
+    const db2 = b.fechaVence?.toDate?.() || new Date(9999,0,1);
+    return da - db2;
+  });
 
   const urgent  = pendientes.filter(p => diasRestantes(p.fechaVence) <= 5);
   const warning = pendientes.filter(p => { const d=diasRestantes(p.fechaVence); return d>5 && d<=15; });
@@ -1346,10 +1355,14 @@ window.loadClienteDetalle = async function(id) {
   const histSnap = await getDocs(query(
     collection(db,'pendientes'),
     where('clienteId','==',id),
-    where('estado','==','completado'),
-    orderBy('completadoEn','desc')
+    where('estado','==','completado')
   ));
-  renderHistorial(histSnap.docs.slice(0,10));
+  const histDocs = histSnap.docs.sort((a,b) => {
+    const da = a.data().completadoEn?.toDate?.() || new Date(0);
+    const db2 = b.data().completadoEn?.toDate?.() || new Date(0);
+    return db2 - da;
+  });
+  renderHistorial(histDocs.slice(0,10));
 };
 
 function renderPendingCards(containerId, items) {
