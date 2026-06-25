@@ -359,22 +359,25 @@ textarea.finput{resize:vertical;min-height:70px}
 
       <!-- TABLA CONTROL -->
       <div class="view" id="v-ctrl">
-        <div class="sec-hdr"><div><div class="sec-title">Tabla de control</div><div class="sec-sub">Vista tipo Excel por obligación</div></div></div>
+        <div class="sec-hdr"><div><div class="sec-title">Tabla de control</div><div class="sec-sub">Estado por obligación y cliente</div></div></div>
         <div class="ctrl-filter">
           <div class="fg"><label class="flabel">Tipo</label>
-            <select class="finput" id="ctrl-tipo" style="width:180px" onchange="loadCtrl()"><option value="">Todos</option></select></div>
+            <select class="finput" id="ctrl-tipo" style="width:160px" onchange="loadCtrl()"><option value="">Todos</option></select></div>
           <div class="fg"><label class="flabel">Encargado</label>
-            <select class="finput" id="ctrl-enc" style="width:140px" onchange="loadCtrl()">
+            <select class="finput" id="ctrl-enc" style="width:130px" onchange="loadCtrl()">
               <option value="">Todos</option><option value="Carlos">Carlos</option><option value="Antonio">Antonio</option></select></div>
           <div class="fg"><label class="flabel">Desde</label>
-            <input type="month" class="finput" id="ctrl-desde" style="width:150px" onchange="loadCtrl()"></div>
+            <input type="month" class="finput" id="ctrl-desde" style="width:140px" onchange="loadCtrl()"></div>
           <div class="fg"><label class="flabel">Hasta</label>
-            <input type="month" class="finput" id="ctrl-hasta" style="width:150px" onchange="loadCtrl()"></div>
+            <input type="month" class="finput" id="ctrl-hasta" style="width:140px" onchange="loadCtrl()"></div>
         </div>
-        <div class="card" style="padding:0;overflow-x:auto"><div id="ctrl-table"><div style="padding:24px;text-align:center"><div class="spinner"></div></div></div></div>
+        <!-- Desktop: tabla horizontal -->
+        <div class="card" style="padding:0;overflow-x:auto;display:none" id="ctrl-desktop"><div id="ctrl-table-inner"></div></div>
+        <!-- Móvil: cards verticales -->
+        <div id="ctrl-mobile"></div>
       </div>
 
-      <!-- NOTIFICACIONES -->
+      <!-- NOTIFICACIONES --><!-- NOTIFICACIONES -->
       <div class="view" id="v-notif">
         <div class="sec-hdr"><div><div class="sec-title">Notificaciones</div></div></div>
         <div class="card">
@@ -702,28 +705,57 @@ async function loadCli(filtro='todos'){
     const el=document.getElementById('ctab-'+t);
     if(el) el.classList.toggle('active', t===(filtro==='todos'?'todos':filtro.toLowerCase()));
   });
+  const el=document.getElementById('cli-list');
+  el.innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
   try{
-    const snap=await getDocs(collection(db,'clientes'));
-    let docs=snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
-    if(filtro!=='todos') docs=docs.filter(d=>(d.data().encargado||'')===filtro);
-    const total=snap.docs.length, mostrando=docs.length;
-    document.getElementById('cli-sub').textContent=filtro==='todos'?`${total} cliente${total!==1?'s':''}`:`${mostrando} de ${total} — ${filtro}`;
-    const el=document.getElementById('cli-list');
+    // Traer todo de una vez para no hacer queries por cliente
+    const [cliSnap, pendSnap, obSnap] = await Promise.all([
+      getDocs(collection(db,'clientes')),
+      getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente'))),
+      getDocs(collection(db,'obligaciones'))
+    ]);
+
+    // Indexar pendientes y obligaciones por clienteId
+    const pendByClient={};
+    pendSnap.docs.forEach(d=>{
+      const p=d.data();
+      if(!pendByClient[p.clienteId]) pendByClient[p.clienteId]=[];
+      pendByClient[p.clienteId].push(p);
+    });
+    const obByClient={};
+    obSnap.docs.forEach(d=>{
+      const o=d.data();
+      if(!obByClient[o.clienteId]) obByClient[o.clienteId]=[];
+      obByClient[o.clienteId].push(o.tipo);
+    });
+
+    let docs=cliSnap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
+    // Filtrar por encargado en JS (sin query Firestore)
+    if(filtro!=='todos') docs=docs.filter(d=>(d.data().encargado||'')=== filtro);
+
+    const total=cliSnap.docs.length, mostrando=docs.length;
+    document.getElementById('cli-sub').textContent=filtro==='todos'
+      ?`${total} cliente${total!==1?'s':''}`
+      :`${mostrando} de ${total} — ${filtro}`;
+
     if(!docs.length){el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes${filtro!=='todos'?' para '+filtro:''}</div></div></div>`;return;}
+
     let html='';
     for(const d of docs){
-      const c=d.data();
-      const ps=await getDocs(query(collection(db,'pendientes'),where('clienteId','==',d.id),where('estado','==','pendiente')));
-      const urg=ps.docs.filter(p=>daysLeft(p.data().fechaVence)<=5).length;
-      const obSnap=await getDocs(query(collection(db,'obligaciones'),where('clienteId','==',d.id)));
-      const pills=obSnap.docs.slice(0,3).map(o=>`<span class="ob-pill">${o.data().tipo}</span>`).join('');
-      const alert=urg>0?`<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urg} urgente${urg!==1?'s':''}</span>`:`<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
-      const enc=c.encargado||'—';
+      const c2=d.data();
+      const pends=pendByClient[d.id]||[];
+      const urg=pends.filter(p=>daysLeft(p.fechaVence)<=5).length;
+      const tipos=[...new Set(obByClient[d.id]||[])].slice(0,3);
+      const pills=tipos.map(t=>`<span class="ob-pill">${t}</span>`).join('');
+      const alert=urg>0
+        ?`<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urg} urgente${urg!==1?'s':''}</span>`
+        :`<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
+      const enc=c2.encargado||'—';
       html+=`<div class="card cli-row" onclick="loadCdet('${d.id}')">
-        <div class="cli-av">${initials(c.nombre)}</div>
+        <div class="cli-av">${initials(c2.nombre)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px;margin-bottom:2px">${c.nombre}</div>
-          <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${c.cedula||'Sin cédula'}</div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:2px">${c2.nombre}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${c2.cedula||'Sin cédula'}</div>
           <div style="margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span class="resp-pill" style="background:${encColor(enc)}1a;color:${encColor(enc)}">👤 ${enc}</span>
             ${pills}
@@ -733,8 +765,9 @@ async function loadCli(filtro='todos'){
       </div>`;
     }
     el.innerHTML=html;
-  }catch(e){console.error(e);toast('Error','err');}
+  }catch(e){console.error(e);toast('Error cargando clientes','err');}
 }
+
 window.openMC=function(id=null){editCliId=id;document.getElementById('m-cli-title').textContent=id?'Editar cliente':'Nuevo cliente';if(!id){['mc-nombre','mc-cedula','mc-notas'].forEach(i=>document.getElementById(i).value='');document.getElementById('mc-reg').value='Tradicional';document.getElementById('mc-enc').value='Carlos';}om('m-cli');};
 window.editCli=function(){if(!CC)return;document.getElementById('mc-nombre').value=CC.nombre||'';document.getElementById('mc-cedula').value=CC.cedula||'';document.getElementById('mc-reg').value=CC.regimen||'Tradicional';document.getElementById('mc-enc').value=CC.encargado||'Carlos';document.getElementById('mc-notas').value=CC.notas||'';editCliId=CC.id;document.getElementById('m-cli-title').textContent='Editar cliente';om('m-cli');};
 window.saveCli=async function(){const nombre=document.getElementById('mc-nombre').value.trim();if(!nombre){toast('El nombre es requerido','err');return;}const data={nombre,cedula:document.getElementById('mc-cedula').value.trim(),regimen:document.getElementById('mc-reg').value,encargado:document.getElementById('mc-enc').value,notas:document.getElementById('mc-notas').value.trim(),activo:true};try{if(editCliId){await updateDoc(doc(db,'clientes',editCliId),data);toast('Cliente actualizado','ok');if(CC&&CC.id===editCliId){CC={...CC,...data};document.getElementById('cd-name').textContent=data.nombre;document.getElementById('cd-meta').textContent=`${data.cedula||'Sin cédula'} · ${data.regimen}`;document.getElementById('cd-av').textContent=initials(data.nombre);document.getElementById('bc-name').textContent=data.nombre;document.getElementById('cd-enc').innerHTML=`<span class="resp-pill" style="background:${encColor(data.encargado)}1a;color:${encColor(data.encargado)}">👤 ${data.encargado}</span>`;}}else{await addDoc(collection(db,'clientes'),{...data,creadoEn:serverTimestamp(),creadoPor:CU.uid});toast('Cliente creado','ok');}cm('m-cli');loadCli();}catch(e){console.error(e);toast('Error','err');}};
@@ -892,83 +925,134 @@ async function initCtrl(){
   const sel=document.getElementById('ctrl-tipo');
   sel.innerHTML='<option value="">Todos</option>';
   snap.docs.forEach(d=>{sel.innerHTML+=`<option value="${d.data().nombre}">${d.data().nombre}</option>`;});
-  // Poner fechas por defecto: hace 6 meses hasta hoy
   const hoy=new Date();
   const desde=new Date(hoy.getFullYear(),hoy.getMonth()-5,1);
-  const toMonthStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  document.getElementById('ctrl-desde').value=toMonthStr(desde);
-  document.getElementById('ctrl-hasta').value=toMonthStr(hoy);
+  const toM=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('ctrl-desde').value=toM(desde);
+  document.getElementById('ctrl-hasta').value=toM(hoy);
   loadCtrl();
 }
+
 window.loadCtrl=async function(){
   const tipoF=document.getElementById('ctrl-tipo').value;
   const encF=document.getElementById('ctrl-enc').value;
   const desdeVal=document.getElementById('ctrl-desde').value;
   const hastaVal=document.getElementById('ctrl-hasta').value;
-  const el=document.getElementById('ctrl-table');
-  el.innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
-  if(!desdeVal||!hastaVal){el.innerHTML=`<div class="empty"><div class="empty-title">Seleccioná un rango de fechas</div></div>`;return;}
+  const isMobile=window.innerWidth<=768;
+
+  if(!desdeVal||!hastaVal){
+    document.getElementById('ctrl-mobile').innerHTML=`<div class="empty"><div class="empty-title">Seleccioná un rango de fechas</div></div>`;
+    return;
+  }
+  document.getElementById('ctrl-mobile').innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
+  document.getElementById('ctrl-desktop').style.display='none';
+
   try{
     const [dy,dm]=desdeVal.split('-').map(Number);
     const [hy,hm]=hastaVal.split('-').map(Number);
     const periodos=[];
-    let cy=dy,cm2=dm;
-    while(cy<hy||(cy===hy&&cm2<=hm)){
-      periodos.push(`${cy}-${String(cm2).padStart(2,'0')}`);
-      cm2++;if(cm2>12){cm2=1;cy++;}
+    let cy=dy,cm=dm;
+    while(cy<hy||(cy===hy&&cm<=hm)){
+      periodos.push(`${cy}-${String(cm).padStart(2,'0')}`);
+      cm++;if(cm>12){cm=1;cy++;}
       if(periodos.length>24)break;
     }
     const perL=p=>{const[y,m]=p.split('-');return `${MN[parseInt(m)-1]} ${y.slice(2)}`;};
+    const hoy2=new Date();
+
+    // Traer todo de una vez
     let pendSnap;
-    if(tipoF)pendSnap=await getDocs(query(collection(db,'pendientes'),where('tipo','==',tipoF)));
+    if(tipoF) pendSnap=await getDocs(query(collection(db,'pendientes'),where('tipo','==',tipoF)));
     else pendSnap=await getDocs(collection(db,'pendientes'));
-    const cliSnap=await getDocs(collection(db,'clientes'));const clis={};cliSnap.docs.forEach(d=>{clis[d.id]=d.data();});
+    const cliSnap=await getDocs(collection(db,'clientes'));
+    const clis={};cliSnap.docs.forEach(d=>{clis[d.id]=d.data();});
+
+    // Agrupar datos
     const data={};
     pendSnap.docs.forEach(d=>{
-      const p=d.data();if(p.manual)return;if(!p.periodo||!p.clienteId)return;if(!periodos.includes(p.periodo))return;
-      if(encF&&clis[p.clienteId]?.encargado!==encF)return;
+      const p=d.data();if(p.manual)return;if(!p.periodo||!p.clienteId)return;
+      if(!periodos.includes(p.periodo))return;
+      if(encF&&(clis[p.clienteId]?.encargado||'')!==encF)return;
       if(!data[p.clienteId])data[p.clienteId]={};
       if(!data[p.clienteId][p.periodo])data[p.clienteId][p.periodo]=[];
-      data[p.clienteId][p.periodo].push({estado:p.estado,realizadoPor:p.realizadoPor,diasTardio:p.diasTardio||0});
+      data[p.clienteId][p.periodo].push({estado:p.estado,realizadoPor:p.realizadoPor,diasTardio:p.diasTardio||0,tipo:p.tipo});
     });
+
     const clienteIds=Object.keys(data).sort((a,b)=>(clis[a]?.nombre||'').localeCompare(clis[b]?.nombre||''));
-    if(!clienteIds.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin datos para este rango</div><div>Agrega obligaciones a tus clientes primero</div></div>`;return;}
-    let html=`<table class="ctrl-table"><thead><tr><th>Cliente</th><th>Encargado</th>`;
-    periodos.forEach(p=>{html+=`<th style="text-align:center">${perL(p)}</th>`;});
-    html+=`</tr></thead><tbody>`;
-    for(const cid of clienteIds){
-      const enc=clis[cid]?.encargado||'—';
-      html+=`<tr><td style="font-weight:600;white-space:nowrap;font-size:12.5px">${clis[cid]?.nombre||'—'}</td><td><span style="font-size:11px;font-weight:600;color:${encColor(enc)}">${enc}</span></td>`;
-      const hoy2=new Date();
-      for(const per of periodos){
-        const items=data[cid]?.[per];
-        if(!items?.length){
-          const [py,pm]=per.split('-').map(Number);
-          const esFuturo=py>hoy2.getFullYear()||(py===hoy2.getFullYear()&&pm>hoy2.getMonth()+1);
-          html+=esFuturo?`<td style="text-align:center"><span class="cc-na">—</span></td>`:`<td style="text-align:center"><span class="cc-na">—</span></td>`;
-          continue;
-        }
-        const done=items.find(i=>i.estado==='completado');const pend=items.find(i=>i.estado==='pendiente');
-        const [py,pm]=per.split('-').map(Number);
-        const esActual=py===hoy2.getFullYear()&&pm===hoy2.getMonth()+1;
-        const esFuturo=py>hoy2.getFullYear()||(py===hoy2.getFullYear()&&pm>hoy2.getMonth()+1);
-        if(done){const tard=done.diasTardio>0?` (${done.diasTardio}d)`:'';html+=`<td style="text-align:center"><span class="cc-done">✓ ${done.realizadoPor||'—'}${tard}</span></td>`;}
-        else if(pend){html+=esActual||esFuturo?`<td style="text-align:center"><span class="cc-pend">⏳ Pend.</span></td>`:`<td style="text-align:center"><span class="cc-over">✗ Sin pres.</span></td>`;}
-        else{html+=`<td style="text-align:center"><span class="cc-na">—</span></td>`;}
-      }
-      html+=`</tr>`;
+
+    if(!clienteIds.length){
+      document.getElementById('ctrl-mobile').innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin datos para este rango</div><div>Agrega obligaciones a los clientes primero</div></div>`;
+      return;
     }
-    html+=`</tbody></table>`;el.innerHTML=html;
+
+    const cellHTML=(items,per)=>{
+      if(!items?.length) return `<span class="cc-na">—</span>`;
+      const done=items.find(i=>i.estado==='completado');
+      const pend=items.find(i=>i.estado==='pendiente');
+      const [py,pm]=per.split('-').map(Number);
+      const esActual=py===hoy2.getFullYear()&&pm===hoy2.getMonth()+1;
+      const esFuturo=py>hoy2.getFullYear()||(py===hoy2.getFullYear()&&pm>hoy2.getMonth()+1);
+      if(done){const tard=done.diasTardio>0?` (${done.diasTardio}d)`:'';return `<span class="cc-done">✓ ${done.realizadoPor||'—'}${tard}</span>`;}
+      if(pend){return esActual||esFuturo?`<span class="cc-pend">⏳ Pend.</span>`:`<span class="cc-over">✗ Sin pres.</span>`;}
+      return `<span class="cc-na">—</span>`;
+    };
+
+    if(isMobile){
+      // MÓVIL: una card por cliente con filas de períodos
+      let html='';
+      for(const cid of clienteIds){
+        const enc=clis[cid]?.encargado||'—';
+        html+=`<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+          <div style="padding:12px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <div style="font-weight:600;font-size:13.5px">${clis[cid]?.nombre||'—'}</div>
+            <span class="resp-pill" style="background:${encColor(enc)}1a;color:${encColor(enc)}">👤 ${enc}</span>
+          </div>`;
+        for(const per of periodos){
+          const items=data[cid]?.[per];
+          const tipoNom=items?.[0]?.tipo||tipoF||'Obligación';
+          html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border)">
+            <div style="font-size:12px;color:var(--text2)">${perL(per)}</div>
+            <div>${cellHTML(items,per)}</div>
+          </div>`;
+        }
+        html+=`</div>`;
+      }
+      document.getElementById('ctrl-mobile').innerHTML=html;
+      document.getElementById('ctrl-desktop').style.display='none';
+    } else {
+      // DESKTOP: tabla horizontal
+      let html=`<table class="ctrl-table"><thead><tr><th>Cliente</th><th>Encargado</th>`;
+      periodos.forEach(p=>{html+=`<th style="text-align:center">${perL(p)}</th>`;});
+      html+=`</tr></thead><tbody>`;
+      for(const cid of clienteIds){
+        const enc=clis[cid]?.encargado||'—';
+        html+=`<tr><td style="font-weight:600;white-space:nowrap;font-size:12.5px">${clis[cid]?.nombre||'—'}</td>
+          <td><span style="font-size:11px;font-weight:600;color:${encColor(enc)}">${enc}</span></td>`;
+        for(const per of periodos){
+          html+=`<td style="text-align:center">${cellHTML(data[cid]?.[per],per)}</td>`;
+        }
+        html+=`</tr>`;
+      }
+      html+=`</tbody></table>`;
+      document.getElementById('ctrl-table-inner').innerHTML=html;
+      document.getElementById('ctrl-desktop').style.display='block';
+      document.getElementById('ctrl-mobile').innerHTML='';
+    }
   }catch(e){console.error(e);toast('Error','err');}
 };
 
 // ── CONFIG ──
 async function loadCfg(){
   try{
-    const snap=await getDocs(collection(db,'tipos_obligacion'));const el=document.getElementById('cfg-list');
-    if(!snap.size){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos</div></div>`;return;}
+    const snap=await getDocs(collection(db,'tipos_obligacion'));
+    const el=document.getElementById('cfg-list');
+    if(!snap.size){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos</div></div>';return;}
     const fl={mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
-    let h='';snap.docs.forEach(d=>{const t=d.data();h+=`<div class="cfg-row"><div class="cfg-name">${t.nombre}<br><span style="font-size:11px;color:var(--muted)">${t.descripcion||''}</span></div><span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span><span style="font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:55px;text-align:right">Día ${t.dia||'—'}</span><button class="btn btn-ghost btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editTO('${d.id}')">✏️</button></div>`;});
+    let h='';
+    snap.docs.forEach(d=>{
+      const t=d.data();
+      h+='<div class="cfg-row"><div class="cfg-name">'+t.nombre+'<br><span style="font-size:11px;color:var(--muted)">'+( t.descripcion||'')+'</span></div><span class="cfg-freq">'+(fl[t.frecuencia]||t.frecuencia)+'</span><span style="font-size:11.5px;color:var(--muted);font-family:JetBrains Mono,monospace;min-width:55px;text-align:right">Día '+(t.dia||'—')+'</span><button class="btn btn-ghost btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editTO(''+d.id+'')" >✏️</button></div>';
+    });
     el.innerHTML=h;
   }catch(e){console.error(e);}
 }
