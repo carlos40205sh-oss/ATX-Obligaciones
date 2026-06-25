@@ -22,34 +22,39 @@ html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
 input,textarea,select,button{font-family:inherit}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ── LOADING ── */
+/* LOADING */
 #loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9999}
 #loading .logo{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--accent);letter-spacing:4px}
 .spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── PAGES ── */
+/* PAGES */
 .page{display:none;min-height:100vh}
 
-/* ── LOGIN ── */
+/* LOGIN */
 #pg-login{align-items:center;justify-content:center;background:var(--bg)}
 .login-box{width:380px;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:36px 32px}
 .login-logo{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:4px}
 .login-tag{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:26px}
 .err-box{background:var(--red-dim);border:1px solid var(--red);color:var(--red);border-radius:var(--r);padding:10px 13px;font-size:12.5px;margin-bottom:12px;display:none}
 
-/* ── APP SHELL ── */
+/* APP SHELL */
 #pg-app{flex-direction:column}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-shrink:0}
 .tlogo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;color:var(--accent);letter-spacing:2px}
 .tright{display:flex;align-items:center;gap:10px}
 .tuser{font-size:12.5px;color:var(--muted)}
-.tavatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+.tavatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;position:relative}
+.user-menu{position:absolute;top:40px;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);min-width:160px;overflow:hidden;display:none;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.user-menu.show{display:block}
+.user-menu-item{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:8px}
+.user-menu-item:hover{background:var(--surface2)}
+.user-menu-item.danger{color:var(--red)}
 .nbtn{width:34px;height:34px;border-radius:var(--r);background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;position:relative}
 .ndot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--surface);display:none}
 
 .shell{display:flex;flex:1}
-.sidebar{width:224px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar{width:224px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;display:flex;flex-direction:column}
 .slabel{font-size:10px;font-weight:600;letter-spacing:1.3px;color:var(--muted);text-transform:uppercase;padding:0 18px;margin:14px 0 4px}
 .slabel:first-child{margin-top:0}
 .nitem{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .12s;user-select:none}
@@ -57,19 +62,21 @@ input,textarea,select,button{font-family:inherit}
 .nitem.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-dim)}
 .nicon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
 .nbadge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--red);color:white;display:none}
+.sidebar-footer{margin-top:auto;padding:12px 0;border-top:1px solid var(--border)}
 
 .main{flex:1;padding:28px 32px;overflow-y:auto}
 
-/* ── VIEWS ── */
+/* VIEWS */
 .view{display:none}.view.show{display:block}
 
-/* ── CARDS / COMMON ── */
+/* COMMON */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s,transform .1s;white-space:nowrap}
 .btn:hover{opacity:.87}.btn:active{transform:scale(.97)}
 .btn-primary{background:var(--accent);color:white}
 .btn-success{background:var(--green);color:var(--bg)}
 .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid var(--red-dim)}
 .btn-sm{padding:6px 12px;font-size:12px}
 .fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .flabel{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
@@ -80,14 +87,14 @@ select.finput{cursor:pointer}
 select.finput option{background:var(--surface2)}
 textarea.finput{resize:vertical;min-height:70px}
 
-/* ── STAT CARDS ── */
+/* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
 .sc-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
 .sc-val{font-size:30px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1.5px}
 .sc-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
 .sc-red .sc-val{color:var(--red)}.sc-yellow .sc-val{color:var(--yellow)}.sc-green .sc-val{color:var(--green)}.sc-blue .sc-val{color:var(--accent)}
 
-/* ── TABLE ── */
+/* TABLE */
 .tbl{overflow:hidden}
 .tbl-head,.tbl-row{display:grid;grid-template-columns:22px 1fr 150px 120px 110px 90px;gap:12px;padding:11px 18px;align-items:center;font-size:13px}
 .tbl-head{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;background:var(--surface2);border-bottom:1px solid var(--border)}
@@ -95,31 +102,32 @@ textarea.finput{resize:vertical;min-height:70px}
 .tbl-row:last-child{border-bottom:none}
 .tbl-row:hover{background:var(--surface2)}
 
-/* ── CLIENTS ── */
+/* CLIENTS */
 .cli-row{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:border-color .15s,background .12s;border-radius:var(--rl);margin-bottom:8px}
-.cli-row:hover{background:var(--surface2);border-color:var(--border2)}
+.cli-row:hover{background:var(--surface2)}
 .cli-av{width:40px;height:40px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--accent-dim),rgba(168,85,247,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--accent);font-family:'JetBrains Mono',monospace}
-.cli-name{font-weight:600;font-size:14px;margin-bottom:2px}
-.cli-meta{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
 
-/* ── PENDING CARDS ── */
-.pc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--rl);background:var(--surface);border:1px solid var(--border);border-left-width:3px;margin-bottom:9px;transition:opacity .4s,background .15s;position:relative;overflow:hidden}
+/* PENDING CARDS */
+.pc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--rl);background:var(--surface);border:1px solid var(--border);border-left-width:3px;margin-bottom:9px;transition:opacity .4s,background .15s;position:relative}
 .pc:hover{background:var(--surface2)}
-.pc.urgent{border-left-color:var(--red)}.pc.warning{border-left-color:var(--yellow)}.pc.ok{border-left-color:var(--green)}
+.pc.urgent{border-left-color:var(--red)}.pc.warning{border-left-color:var(--yellow)}.pc.ok{border-left-color:var(--green)}.pc.manual{border-left-color:var(--purple)}
 .pc.fading{opacity:.35}
 .chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;flex-shrink:0;transition:all .18s}
 .chk:hover{border-color:var(--green);background:var(--green-dim);color:var(--green)}
 .chk.checked{border-color:var(--green);background:var(--green);color:white}
-.pc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.pc-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
 .pc-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
 
-/* ── BADGES ── */
+/* RESPONSABLE PILL */
+.resp-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-dim);color:var(--accent)}
+
+/* BADGES */
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.b-red{background:var(--red-dim);color:var(--red)}.b-yellow{background:var(--yellow-dim);color:var(--yellow)}.b-green{background:var(--green-dim);color:var(--green)}.b-gray{background:rgba(107,119,153,.12);color:var(--muted)}.b-blue{background:var(--accent-dim);color:var(--accent)}
+.b-red{background:var(--red-dim);color:var(--red)}.b-yellow{background:var(--yellow-dim);color:var(--yellow)}.b-green{background:var(--green-dim);color:var(--green)}.b-gray{background:rgba(107,119,153,.12);color:var(--muted)}.b-blue{background:var(--accent-dim);color:var(--accent)}.b-purple{background:rgba(168,85,247,.12);color:var(--purple)}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .d-red{background:var(--red);box-shadow:0 0 6px var(--red)}.d-yellow{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}.d-green{background:var(--green)}.d-gray{background:var(--muted)}
 
-/* ── HISTORIAL ── */
+/* HISTORIAL */
 .hi{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
 .hi:last-child{border-bottom:none}
 .hd{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
@@ -129,35 +137,33 @@ textarea.finput{resize:vertical;min-height:70px}
 .htag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:6px}
 .htag-g{background:var(--green-dim);color:var(--green)}.htag-r{background:var(--red-dim);color:var(--red)}
 
-/* ── BREADCRUMB ── */
+/* BREADCRUMB */
 .bc{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
 .bcl{color:var(--accent);cursor:pointer}.bcl:hover{text-decoration:underline}
 
-/* ── CLIENT DETAIL ── */
+/* CLIENT DETAIL */
 .cd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .cd-av{width:48px;height:48px;border-radius:11px;background:linear-gradient(135deg,var(--accent-dim),rgba(168,85,247,.2));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--accent);font-family:'JetBrains Mono',monospace;flex-shrink:0}
-.cd-name{font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:3px}
-.cd-meta{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
 .mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
 .ms-label{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
 .ms-val{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .ms-red .ms-val{color:var(--red)}.ms-yellow .ms-val{color:var(--yellow)}.ms-green .ms-val{color:var(--green)}.ms-blue .ms-val{color:var(--accent)}
 
-/* ── SECTION LABELS ── */
+/* SECTION */
 .sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:12px}
 .sec-title{font-size:20px;font-weight:700;letter-spacing:-.3px}
 .sec-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
-.sec-lbl{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;margin-top:22px}
-.sec-lbl:first-child{margin-top:0}
+.sec-lbl{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;margin-top:22px;display:flex;align-items:center;justify-content:space-between}
+.sec-lbl:first-of-type{margin-top:0}
 .ob-pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--accent-dim);color:var(--accent);margin-right:4px}
 
-/* ── CONFIG ROWS ── */
+/* CONFIG ROWS */
 .cfg-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);font-size:13px}
 .cfg-row:last-child{border-bottom:none}
 .cfg-name{flex:1;font-weight:500}
 .cfg-freq{font-size:11.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
 
-/* ── MODAL ── */
+/* MODAL */
 .mbk{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s}
 .mbk.show{opacity:1;pointer-events:all}
 .mbox{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:440px;max-width:92vw;max-height:90vh;overflow-y:auto;transform:scale(.96) translateY(8px);transition:transform .2s}
@@ -167,13 +173,13 @@ textarea.finput{resize:vertical;min-height:70px}
 .mfoot{display:flex;gap:10px;margin-top:18px}
 .mfoot .btn{flex:1;justify-content:center;padding:11px}
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;padding:11px 20px;border-radius:10px;opacity:0;transition:all .3s;z-index:900;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:8px}
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;padding:11px 20px;border-radius:10px;opacity:0;transition:all .3s;z-index:900;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:700}
 .toast.err{background:var(--red);color:white;border-color:var(--red)}
 
-/* ── EMPTY ── */
+/* EMPTY */
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty-icon{font-size:34px;margin-bottom:10px;opacity:.5}
 .empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:5px}
@@ -184,10 +190,7 @@ textarea.finput{resize:vertical;min-height:70px}
 <body>
 
 <!-- LOADING -->
-<div id="loading">
-  <div class="logo">ATX</div>
-  <div class="spinner"></div>
-</div>
+<div id="loading"><div class="logo">ATX</div><div class="spinner"></div></div>
 
 <!-- LOGIN -->
 <div class="page" id="pg-login">
@@ -206,18 +209,21 @@ textarea.finput{resize:vertical;min-height:70px}
 
 <!-- APP -->
 <div class="page" id="pg-app">
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="tlogo">ATX</div>
     <div class="tright">
       <div class="nbtn" onclick="nav('notif')">🔔<div class="ndot" id="ndot"></div></div>
       <div class="tuser" id="t-username"></div>
-      <div class="tavatar" id="t-avatar" onclick="doLogout()" title="Salir">C</div>
+      <div class="tavatar" id="t-avatar" onclick="toggleMenu()">C
+        <div class="user-menu" id="user-menu">
+          <div class="user-menu-item" style="border-bottom:1px solid var(--border);font-weight:600;color:var(--text)" id="menu-email">—</div>
+          <div class="user-menu-item danger" onclick="doLogout()">🚪 Cerrar sesión</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="shell">
-    <!-- SIDEBAR -->
     <nav class="sidebar">
       <div class="slabel">Principal</div>
       <div class="nitem active" id="si-dash" onclick="nav('dash')"><span class="nicon">📊</span>Dashboard<span class="nbadge" id="nb-dash"></span></div>
@@ -226,17 +232,16 @@ textarea.finput{resize:vertical;min-height:70px}
       <div class="nitem" id="si-cli" onclick="nav('cli')"><span class="nicon">🏢</span>Clientes</div>
       <div class="slabel">Configuración</div>
       <div class="nitem" id="si-cfg" onclick="nav('cfg')"><span class="nicon">⚙️</span>Obligaciones</div>
-      <div class="nitem" style="margin-top:20px" onclick="doLogout()"><span class="nicon">🚪</span>Salir</div>
+      <div class="sidebar-footer">
+        <div class="nitem" onclick="doLogout()"><span class="nicon">🚪</span>Cerrar sesión</div>
+      </div>
     </nav>
 
-    <!-- MAIN -->
     <main class="main">
 
       <!-- DASHBOARD -->
       <div class="view" id="v-dash">
-        <div class="sec-hdr">
-          <div><div class="sec-title">Dashboard</div><div class="sec-sub" id="dash-sub">Cargando...</div></div>
-        </div>
+        <div class="sec-hdr"><div><div class="sec-title">Dashboard</div><div class="sec-sub" id="dash-sub">Cargando...</div></div></div>
         <div class="stats-grid">
           <div class="card sc-red"><div class="sc-label">Urgentes</div><div class="sc-val" id="st-urg">—</div><div class="sc-sub">Vencen en ≤5 días</div></div>
           <div class="card sc-yellow"><div class="sc-label">Este mes</div><div class="sc-val" id="st-mes">—</div><div class="sc-sub">Pendientes</div></div>
@@ -245,7 +250,7 @@ textarea.finput{resize:vertical;min-height:70px}
         </div>
         <div class="sec-lbl">⚠️ Próximos vencimientos</div>
         <div class="card tbl" id="dash-list">
-          <div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>
+          <div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Responsable</div></div>
           <div style="padding:28px;text-align:center"><div class="spinner"></div></div>
         </div>
       </div>
@@ -265,9 +270,10 @@ textarea.finput{resize:vertical;min-height:70px}
         <div class="cd-header">
           <div style="display:flex;align-items:center;gap:14px">
             <div class="cd-av" id="cd-av">—</div>
-            <div><div class="cd-name" id="cd-name">—</div><div class="cd-meta" id="cd-meta">—</div></div>
+            <div><div style="font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:3px" id="cd-name">—</div><div style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace" id="cd-meta">—</div></div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="openMP()">＋ Pendiente libre</button>
             <button class="btn btn-ghost btn-sm" onclick="openMO()">＋ Obligación</button>
             <button class="btn btn-ghost btn-sm" onclick="editCli()">✏️ Editar</button>
           </div>
@@ -276,7 +282,7 @@ textarea.finput{resize:vertical;min-height:70px}
           <div class="card ms-red"><div class="ms-label">Urgentes</div><div class="ms-val" id="ms-urg">0</div></div>
           <div class="card ms-yellow"><div class="ms-label">Este mes</div><div class="ms-val" id="ms-mes">0</div></div>
           <div class="card ms-green"><div class="ms-label">Completadas</div><div class="ms-val" id="ms-done">0</div></div>
-          <div class="card ms-blue"><div class="ms-label">Obligaciones</div><div class="ms-val" id="ms-tot">0</div></div>
+          <div class="card ms-blue"><div class="ms-label">Total pendientes</div><div class="ms-val" id="ms-tot">0</div></div>
         </div>
         <div class="sec-lbl">🔴 Urgentes — vencen en menos de 5 días</div>
         <div id="p-urgent"></div>
@@ -293,13 +299,13 @@ textarea.finput{resize:vertical;min-height:70px}
         <div class="sec-hdr"><div><div class="sec-title">Notificaciones</div><div class="sec-sub">Alertas automáticas de vencimientos</div></div></div>
         <div class="card">
           <div style="font-size:14px;font-weight:600;margin-bottom:8px">🔔 Notificaciones push</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Recibí alertas cuando un vencimiento se acerca. Se activan por cliente según los días de aviso configurados.</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Recibí alertas cuando un vencimiento se acerca según los días de aviso configurados.</div>
           <button class="btn btn-primary btn-sm" id="btn-notif" onclick="enableNotif()">Activar notificaciones en este dispositivo</button>
           <div style="font-size:12px;color:var(--green);margin-top:8px;display:none" id="notif-ok">✓ Notificaciones activadas</div>
         </div>
       </div>
 
-      <!-- CONFIG -->
+      <!-- CONFIG OBLIGACIONES -->
       <div class="view" id="v-cfg">
         <div class="sec-hdr">
           <div><div class="sec-title">Tipos de Obligación</div><div class="sec-sub">Plantillas pre-configuradas para Costa Rica</div></div>
@@ -312,7 +318,7 @@ textarea.finput{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- MODAL: DONE -->
+<!-- MODAL: MARCAR DONE -->
 <div class="mbk" id="m-done">
   <div class="mbox">
     <div class="mtitle">✅ Marcar como realizado</div>
@@ -351,8 +357,8 @@ textarea.finput{resize:vertical;min-height:70px}
 <!-- MODAL: OBLIGACION -->
 <div class="mbk" id="m-ob">
   <div class="mbox">
-    <div class="mtitle">Agregar obligación</div>
-    <div class="msub" id="m-ob-sub">Configurar obligación recurrente</div>
+    <div class="mtitle">Agregar obligación recurrente</div>
+    <div class="msub" id="m-ob-sub">Configurar para este cliente</div>
     <div class="fg"><label class="flabel">Tipo de obligación *</label>
       <select class="finput" id="mo-tipo" onchange="onTipoChange()"><option value="">— Seleccionar —</option></select></div>
     <div class="fg"><label class="flabel">Frecuencia</label>
@@ -361,6 +367,8 @@ textarea.finput{resize:vertical;min-height:70px}
       <input type="number" class="finput" id="mo-dia" min="1" max="31" value="15"></div>
     <div class="fg"><label class="flabel">Avisar con cuántos días de anticipación</label>
       <input type="number" class="finput" id="mo-aviso" min="1" max="30" value="7"></div>
+    <div class="fg"><label class="flabel">Responsable</label>
+      <select class="finput" id="mo-resp"><option value="Carlos">Carlos</option><option value="Socio">Socio</option><option value="Ambos">Ambos</option></select></div>
     <div class="fg"><label class="flabel">Nota / referencia</label>
       <input type="text" class="finput" id="mo-nota" placeholder="Ej: Hacienda ATV..."></div>
     <div class="mfoot">
@@ -370,10 +378,30 @@ textarea.finput{resize:vertical;min-height:70px}
   </div>
 </div>
 
-<!-- MODAL: TIPO OB -->
+<!-- MODAL: PENDIENTE LIBRE -->
+<div class="mbk" id="m-pend">
+  <div class="mbox">
+    <div class="mtitle">Agregar pendiente libre</div>
+    <div class="msub" id="m-pend-sub">Tarea o recordatorio manual</div>
+    <div class="fg"><label class="flabel">Descripción *</label>
+      <input type="text" class="finput" id="mp-desc" placeholder="Ej: Revisar facturas de marzo, enviar informe..."></div>
+    <div class="fg"><label class="flabel">Fecha límite</label>
+      <input type="date" class="finput" id="mp-fecha"></div>
+    <div class="fg"><label class="flabel">Responsable</label>
+      <select class="finput" id="mp-resp"><option value="Carlos">Carlos</option><option value="Socio">Socio</option><option value="Ambos">Ambos</option></select></div>
+    <div class="fg"><label class="flabel">Nota adicional</label>
+      <textarea class="finput" id="mp-nota" placeholder="Detalles adicionales..."></textarea></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="cm('m-pend')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePend()">Agregar pendiente</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TIPO OB (crear/editar) -->
 <div class="mbk" id="m-to">
   <div class="mbox">
-    <div class="mtitle">Nuevo tipo de obligación</div>
+    <div class="mtitle" id="m-to-title">Nuevo tipo de obligación</div>
     <div class="msub">Plantilla para usar en cualquier cliente</div>
     <div class="fg"><label class="flabel">Nombre *</label>
       <input type="text" class="finput" id="mto-nombre" placeholder="Ej: Declaración municipal"></div>
@@ -393,9 +421,11 @@ textarea.finput{resize:vertical;min-height:70px}
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, query, where, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp }      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, query, where, serverTimestamp, Timestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDA9t2kF4oXLzeHPpVdu1YVbB2NgOIN0_k",
@@ -403,40 +433,35 @@ const firebaseConfig = {
   projectId:         "atx-obligaciones",
   storageBucket:     "atx-obligaciones.firebasestorage.app",
   messagingSenderId: "219319168826",
-  appId:             "1:219319168826:web:525e18668e835e07736a03",
-  measurementId:     "G-Q5X5KSHRQ5"
+  appId:             "1:219319168826:web:525e18668e835e07736a03"
 };
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
 
-// ── STATE ──
-let CU = null; // current user
-let CC = null; // current client { id, ...data }
-let pendDoneId = null;
-let editCliId  = null;
+let CU = null, CC = null, pendDoneId = null, editCliId = null, editTOId = null;
 
-// ── TIPOS DEFAULT ──
 const TIPOS_DEFAULT = [
-  { nombre:"D-104 IVA",            descripcion:"Declaración mensual IVA - Hacienda",          frecuencia:"mensual",     dia:15 },
-  { nombre:"CCSS Patronal",         descripcion:"Planilla y cargas sociales patronales",        frecuencia:"mensual",     dia:15 },
-  { nombre:"INS Póliza RT",         descripcion:"Póliza Riesgos del Trabajo - INS",            frecuencia:"anual",       dia:1  },
-  { nombre:"D-151 Renta",           descripcion:"Declaración anual Impuesto sobre la Renta",   frecuencia:"anual",       dia:15 },
-  { nombre:"D-195 Utilidades",      descripcion:"Declaración de utilidades personas jurídicas", frecuencia:"anual",       dia:15 },
-  { nombre:"Municipalidad",         descripcion:"Patente municipal trimestral",                 frecuencia:"trimestral",  dia:15 },
-  { nombre:"D-140 Modificación",    descripcion:"Modificación de datos en Hacienda",           frecuencia:"personalizada",dia:1 },
-  { nombre:"Timbre de Educación",   descripcion:"Timbre educación y cultura - anual",           frecuencia:"anual",       dia:31 },
+  { nombre:"D-104 IVA",           descripcion:"Declaración mensual IVA - Hacienda",           frecuencia:"mensual",     dia:15 },
+  { nombre:"CCSS Patronal",        descripcion:"Planilla y cargas sociales patronales",         frecuencia:"mensual",     dia:15 },
+  { nombre:"INS Póliza RT",        descripcion:"Póliza Riesgos del Trabajo - INS",             frecuencia:"anual",       dia:1  },
+  { nombre:"D-151 Renta",          descripcion:"Declaración anual Impuesto sobre la Renta",    frecuencia:"anual",       dia:15 },
+  { nombre:"D-195 Utilidades",     descripcion:"Declaración utilidades personas jurídicas",    frecuencia:"anual",       dia:15 },
+  { nombre:"Municipalidad",        descripcion:"Patente municipal trimestral",                  frecuencia:"trimestral",  dia:15 },
+  { nombre:"D-140 Modificación",   descripcion:"Modificación de datos en Hacienda",            frecuencia:"personalizada",dia:1 },
+  { nombre:"Timbre de Educación",  descripcion:"Timbre educación y cultura anual",              frecuencia:"anual",       dia:31 },
 ];
 
-// ── AUTH STATE ──
-onAuthStateChanged(auth, async (user) => {
-  hide('loading');
+// ── AUTH ──
+onAuthStateChanged(auth, async user => {
+  document.getElementById('loading').style.display = 'none';
   if (user) {
     CU = user;
     const name = user.email.split('@')[0];
-    document.getElementById('t-username').textContent = name;
-    document.getElementById('t-avatar').textContent   = name[0].toUpperCase();
+    document.getElementById('t-username').textContent  = name;
+    document.getElementById('t-avatar').childNodes[0].textContent = name[0].toUpperCase();
+    document.getElementById('menu-email').textContent  = user.email;
     showPage('pg-app');
     await seedTipos();
     nav('dash');
@@ -446,308 +471,268 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ── PAGE / NAV HELPERS ──
-function hide(id){ document.getElementById(id).style.display='none'; }
-
+// ── PAGE ──
 function showPage(id) {
   ['pg-login','pg-app'].forEach(p => {
     const el = document.getElementById(p);
     el.style.display = 'none';
-    el.classList.remove('active');
   });
   const el = document.getElementById(id);
-  el.classList.add('active');
   if (id === 'pg-login') {
-    el.style.display = 'flex';
-    el.style.alignItems = 'center';
-    el.style.justifyContent = 'center';
+    el.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)';
   } else {
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
+    el.style.cssText = 'display:flex;flex-direction:column;min-height:100vh';
   }
 }
 
+// ── NAV ──
 window.nav = function(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('show'));
   document.querySelectorAll('.nitem').forEach(n => n.classList.remove('active'));
-  const vmap = { dash:'v-dash', cli:'v-cli', cdet:'v-cdet', notif:'v-notif', cfg:'v-cfg' };
-  const smap = { dash:'si-dash', cli:'si-cli', notif:'si-notif', cfg:'si-cfg' };
+  const vmap = {dash:'v-dash',cli:'v-cli',cdet:'v-cdet',notif:'v-notif',cfg:'v-cfg'};
+  const smap = {dash:'si-dash',cli:'si-cli',notif:'si-notif',cfg:'si-cfg'};
   const vel = document.getElementById(vmap[view]);
   if (vel) vel.classList.add('show');
   const sel = document.getElementById(smap[view]);
   if (sel) sel.classList.add('active');
-  if (view === 'dash') loadDash();
-  if (view === 'cli')  loadCli();
-  if (view === 'cfg')  loadCfg();
+  if (view==='dash') loadDash();
+  if (view==='cli')  loadCli();
+  if (view==='cfg')  loadCfg();
 };
 
 // ── TOAST ──
 function toast(msg, type='') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (type ? ' '+type : '');
-  clearTimeout(t._t);
-  t._t = setTimeout(()=>t.classList.remove('show'), 3200);
+  t.textContent = msg; t.className = 'toast show'+(type?' '+type:'');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'),3200);
 }
 
 // ── MODAL ──
 function om(id){ document.getElementById(id).classList.add('show'); }
-window.cm = function(id){ document.getElementById(id).classList.remove('show'); };
-document.querySelectorAll('.mbk').forEach(b => b.addEventListener('click', e => { if(e.target===b) b.classList.remove('show'); }));
+window.cm = id => document.getElementById(id).classList.remove('show');
+document.querySelectorAll('.mbk').forEach(b => b.addEventListener('click', e=>{ if(e.target===b) b.classList.remove('show'); }));
+
+// ── USER MENU ──
+window.toggleMenu = function(e) {
+  const m = document.getElementById('user-menu');
+  m.classList.toggle('show');
+};
+document.addEventListener('click', e => {
+  if (!document.getElementById('t-avatar').contains(e.target))
+    document.getElementById('user-menu').classList.remove('show');
+});
 
 // ── UTILS ──
-function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
-function fmtDate(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'}); }
-function daysLeft(ts){ if(!ts) return 999; const d=ts.toDate?ts.toDate():new Date(ts); const h=new Date(); h.setHours(0,0,0,0); return Math.ceil((d-h)/86400000); }
-function urgCls(d){ return d<=5?'urgent':d<=15?'warning':'ok'; }
-function dotCls(d){ return d<=5?'d-red':d<=15?'d-yellow':'d-green'; }
-function badgeCls(d){ return d<=5?'b-red':d<=15?'b-yellow':'b-green'; }
-function daysLbl(d){ if(d<0) return Math.abs(d)+'d vencido'; if(d===0) return 'Hoy'; return d+' días'; }
+const initials = n => (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const fmtDate  = ts => { if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'}); };
+const daysLeft = ts => { if(!ts) return 999; const d=ts.toDate?ts.toDate():new Date(ts); const h=new Date(); h.setHours(0,0,0,0); return Math.ceil((d-h)/86400000); };
+const urgCls   = d => d<=5?'urgent':d<=15?'warning':'ok';
+const dotCls   = d => d<=5?'d-red':d<=15?'d-yellow':'d-green';
+const badgeCls = d => d<=5?'b-red':d<=15?'b-yellow':'b-green';
+const daysLbl  = d => d<0?Math.abs(d)+'d vencido':d===0?'Hoy':d+' días';
+const sortByDate = arr => arr.sort((a,b)=>{ const da=a.fechaVence?.toDate?.()??new Date(9999,0,1); const db2=b.fechaVence?.toDate?.()??new Date(9999,0,1); return da-db2; });
 
-// ── SEED TIPOS ──
+// ── SEED ──
 async function seedTipos() {
   try {
     const snap = await getDocs(collection(db,'tipos_obligacion'));
-    if (snap.empty) {
-      for (const t of TIPOS_DEFAULT) {
-        await addDoc(collection(db,'tipos_obligacion'), {...t, activo:true, creadoPor:CU.uid});
-      }
-    }
-  } catch(e){ console.error('seed error',e); }
+    if (snap.empty) for (const t of TIPOS_DEFAULT) await addDoc(collection(db,'tipos_obligacion'),{...t,activo:true,creadoPor:CU.uid});
+  } catch(e){ console.error('seed',e); }
 }
 
-// ── GENERAR PENDIENTES ──
+// ── GENERAR PENDIENTES (sin duplicar) ──
 async function genPendientes(clienteId, obId, obData) {
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const { frecuencia, dia, aviso, tipo, nota } = obData;
+  const { frecuencia, dia, aviso, tipo, nota, responsable } = obData;
+
+  // Obtener periodos ya existentes para esta obligación
+  const existing = await getDocs(query(collection(db,'pendientes'),
+    where('clienteId','==',clienteId), where('obligacionId','==',obId)));
+  const existingPeriods = new Set(existing.docs.map(d=>d.data().periodo));
+
   const meses = frecuencia==='mensual'?3:frecuencia==='trimestral'?9:frecuencia==='semestral'?12:14;
   const periodos = [];
   for (let i=0; i<meses; i++) {
     const f = new Date(hoy.getFullYear(), hoy.getMonth()+i, dia||15);
-    if (f >= hoy) periodos.push(f);
+    if (f>=hoy) periodos.push(f);
     if (frecuencia==='trimestral' && periodos.length>=3) break;
     if (frecuencia==='semestral'  && periodos.length>=2) break;
     if (frecuencia==='anual'      && periodos.length>=1) break;
   }
+
+  let creados = 0;
   for (const fecha of periodos) {
     const periodo = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
-    const q = query(collection(db,'pendientes'), where('clienteId','==',clienteId), where('obligacionId','==',obId), where('periodo','==',periodo));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      await addDoc(collection(db,'pendientes'), {
-        clienteId, obligacionId:obId, tipo, periodo,
-        fechaVence: Timestamp.fromDate(fecha),
-        diasAviso: aviso||7, estado:'pendiente',
-        nota: nota||'', realizadoPor:'',
-        creadoEn: serverTimestamp(), auto:true
-      });
-    }
+    if (existingPeriods.has(periodo)) continue; // ya existe, saltar
+    await addDoc(collection(db,'pendientes'), {
+      clienteId, obligacionId:obId, tipo, periodo,
+      fechaVence: Timestamp.fromDate(fecha),
+      diasAviso: aviso||7, estado:'pendiente',
+      nota:nota||'', responsable:responsable||'Ambos',
+      realizadoPor:'', creadoEn:serverTimestamp(), auto:true, manual:false
+    });
+    creados++;
   }
+  return creados;
 }
 
 // ── LOGIN ──
 window.doLogin = async () => {
-  const email = document.getElementById('li-email').value.trim();
-  const pass  = document.getElementById('li-pass').value;
-  const errEl = document.getElementById('login-err');
-  const btn   = document.getElementById('li-btn');
-  errEl.style.display = 'none';
-  btn.textContent = 'Ingresando...'; btn.disabled = true;
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    let msg = 'Correo o contraseña incorrectos.';
-    if (e.code==='auth/too-many-requests') msg='Demasiados intentos. Intentá más tarde.';
-    errEl.textContent = msg; errEl.style.display = 'block';
-  } finally { btn.textContent='Ingresar'; btn.disabled=false; }
+  const email=document.getElementById('li-email').value.trim(), pass=document.getElementById('li-pass').value;
+  const errEl=document.getElementById('login-err'), btn=document.getElementById('li-btn');
+  errEl.style.display='none'; btn.textContent='Ingresando...'; btn.disabled=true;
+  try { await signInWithEmailAndPassword(auth,email,pass); }
+  catch(e){ errEl.textContent=e.code==='auth/too-many-requests'?'Demasiados intentos.':'Correo o contraseña incorrectos.'; errEl.style.display='block'; }
+  finally { btn.textContent='Ingresar'; btn.disabled=false; }
 };
 window.doLogout = async () => { await signOut(auth); };
 window.doReset  = async () => {
-  const e = document.getElementById('li-email').value.trim();
-  if (!e){ toast('Ingresá tu correo primero','err'); return; }
-  await sendPasswordResetEmail(auth, e);
-  toast('Correo de recuperación enviado','ok');
+  const e=document.getElementById('li-email').value.trim();
+  if(!e){ toast('Ingresá tu correo primero','err'); return; }
+  await sendPasswordResetEmail(auth,e); toast('Correo de recuperación enviado','ok');
 };
 document.getElementById('li-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') window.doLogin(); });
 document.getElementById('li-email').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('li-pass').focus(); });
 
 // ── DASHBOARD ──
 async function loadDash() {
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
   try {
-    const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente')));
-    const pends = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-      const da=a.fechaVence?.toDate?.()??new Date(9999,0,1);
-      const db2=b.fechaVence?.toDate?.()??new Date(9999,0,1);
-      return da-db2;
-    });
-
-    const cliSnap = await getDocs(collection(db,'clientes'));
-    const clis = {}; cliSnap.docs.forEach(d=>{ clis[d.id]=d.data(); });
-
-    const urg  = pends.filter(p=>daysLeft(p.fechaVence)<=5).length;
-    const mes  = pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
-
-    const doneSnap = await getDocs(query(collection(db,'pendientes'), where('estado','==','completado')));
-    const doneEste = doneSnap.docs.filter(d=>{ const ts=d.data().completadoEn; if(!ts) return false; const dd=ts.toDate(); return dd.getMonth()===hoy.getMonth()&&dd.getFullYear()===hoy.getFullYear(); }).length;
-
-    document.getElementById('st-urg').textContent  = urg;
-    document.getElementById('st-mes').textContent  = mes;
-    document.getElementById('st-done').textContent = doneEste;
-    document.getElementById('st-cli').textContent  = cliSnap.size;
-
-    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    document.getElementById('dash-sub').textContent = `${meses[hoy.getMonth()]} ${hoy.getFullYear()} — ${urg} vencimiento${urg!==1?'s':''} urgente${urg!==1?'s':''}`;
-
-    if (urg>0){ document.getElementById('nb-dash').textContent=urg; document.getElementById('nb-dash').style.display=''; document.getElementById('ndot').style.display=''; }
-
-    const el = document.getElementById('dash-list');
-    const top = pends.slice(0,10);
-    if (!top.length) {
-      el.innerHTML = `<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div><div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes próximos</div></div>`;
-      return;
-    }
-    let rows = `<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>`;
-    for (const p of top) {
-      const d = daysLeft(p.fechaVence);
-      rows += `<div class="tbl-row" onclick="goClient('${p.clienteId}')">
+    const hoy=new Date(); hoy.setHours(0,0,0,0);
+    const finMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0);
+    const snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente')));
+    const pends=sortByDate(snap.docs.map(d=>({id:d.id,...d.data()})));
+    const cliSnap=await getDocs(collection(db,'clientes'));
+    const clis={}; cliSnap.docs.forEach(d=>{ clis[d.id]=d.data(); });
+    const urg=pends.filter(p=>daysLeft(p.fechaVence)<=5).length;
+    const mes=pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
+    const doneSnap=await getDocs(query(collection(db,'pendientes'),where('estado','==','completado')));
+    const doneEste=doneSnap.docs.filter(d=>{ const ts=d.data().completadoEn; if(!ts) return false; const dd=ts.toDate(); return dd.getMonth()===hoy.getMonth()&&dd.getFullYear()===hoy.getFullYear(); }).length;
+    document.getElementById('st-urg').textContent=urg;
+    document.getElementById('st-mes').textContent=mes;
+    document.getElementById('st-done').textContent=doneEste;
+    document.getElementById('st-cli').textContent=cliSnap.size;
+    const mnames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    document.getElementById('dash-sub').textContent=`${mnames[hoy.getMonth()]} ${hoy.getFullYear()} — ${urg} urgente${urg!==1?'s':''}`;
+    if(urg>0){ document.getElementById('nb-dash').textContent=urg; document.getElementById('nb-dash').style.display=''; document.getElementById('ndot').style.display=''; }
+    const el=document.getElementById('dash-list');
+    const top=pends.slice(0,10);
+    if(!top.length){ el.innerHTML=`<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días</div><div>Responsable</div></div><div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes próximos</div></div>`; return; }
+    let rows=`<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Responsable</div></div>`;
+    for(const p of top){
+      const d=daysLeft(p.fechaVence);
+      rows+=`<div class="tbl-row" onclick="loadCdet('${p.clienteId}')">
         <div><span class="dot ${dotCls(d)}"></span></div>
-        <div><div style="font-weight:500">${p.tipo||'—'}</div><div style="font-size:11.5px;color:var(--muted)">${p.periodo||''}</div></div>
+        <div><div style="font-weight:500">${p.tipo||p.descripcion||'—'}</div><div style="font-size:11.5px;color:var(--muted)">${p.periodo||''}</div></div>
         <div style="font-size:13px">${clis[p.clienteId]?.nombre||'—'}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--muted)">${fmtDate(p.fechaVence)}</div>
         <div><span class="badge ${badgeCls(d)}">${daysLbl(d)}</span></div>
-        <div><span class="badge b-yellow">Pendiente</span></div>
+        <div><span class="resp-pill">👤 ${p.responsable||'—'}</span></div>
       </div>`;
     }
-    el.innerHTML = rows;
+    el.innerHTML=rows;
   } catch(e){ console.error('loadDash',e); toast('Error cargando dashboard','err'); }
 }
-window.goClient = function(id){ loadCdet(id); };
 
 // ── CLIENTES ──
 async function loadCli() {
   try {
-    const snap = await getDocs(collection(db,'clientes'));
-    const docs = snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
-    document.getElementById('cli-sub').textContent = `${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
-    const el = document.getElementById('cli-list');
-    if (!docs.length) { el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div><div>Agregá tu primer cliente</div></div></div>`; return; }
-    let html = '';
-    for (const d of docs) {
-      const c = d.data();
-      const q2 = query(collection(db,'pendientes'), where('clienteId','==',d.id), where('estado','==','pendiente'));
-      const ps = await getDocs(q2);
-      const urg = ps.docs.filter(p=>daysLeft(p.data().fechaVence)<=5).length;
-      const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',d.id)));
-      const pills = obSnap.docs.slice(0,4).map(o=>`<span class="ob-pill">${o.data().tipo}</span>`).join('');
-      const alert = urg>0 ? `<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urg} urgente${urg!==1?'s':''}</span>` : `<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
-      html += `<div class="card cli-row" onclick="loadCdet('${d.id}')">
+    const snap=await getDocs(collection(db,'clientes'));
+    const docs=snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
+    document.getElementById('cli-sub').textContent=`${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
+    const el=document.getElementById('cli-list');
+    if(!docs.length){ el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div><div>Agregá tu primer cliente</div></div></div>`; return; }
+    let html='';
+    for(const d of docs){
+      const c=d.data();
+      const q2=query(collection(db,'pendientes'),where('clienteId','==',d.id),where('estado','==','pendiente'));
+      const ps=await getDocs(q2);
+      const urg=ps.docs.filter(p=>daysLeft(p.data().fechaVence)<=5).length;
+      const obSnap=await getDocs(query(collection(db,'obligaciones'),where('clienteId','==',d.id)));
+      const pills=obSnap.docs.slice(0,4).map(o=>`<span class="ob-pill">${o.data().tipo}</span>`).join('');
+      const alert=urg>0?`<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urg} urgente${urg!==1?'s':''}</span>`:`<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
+      html+=`<div class="card cli-row" onclick="loadCdet('${d.id}')">
         <div class="cli-av">${initials(c.nombre)}</div>
-        <div style="flex:1"><div class="cli-name">${c.nombre}</div><div class="cli-meta">${c.cedula||'Sin cédula'} · ${c.regimen||'Tradicional'}</div></div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px;margin-bottom:2px">${c.nombre}</div><div style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace">${c.cedula||'Sin cédula'} · ${c.regimen||'Tradicional'}</div></div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">${alert}<div>${pills}</div></div>
       </div>`;
     }
-    el.innerHTML = html;
+    el.innerHTML=html;
   } catch(e){ console.error('loadCli',e); toast('Error cargando clientes','err'); }
 }
-
-window.openMC = function(id=null) {
-  editCliId = id;
-  document.getElementById('m-cli-title').textContent = id?'Editar cliente':'Nuevo cliente';
-  if (!id) { document.getElementById('mc-nombre').value=''; document.getElementById('mc-cedula').value=''; document.getElementById('mc-reg').value='Tradicional'; document.getElementById('mc-notas').value=''; }
+window.openMC = function(id=null){
+  editCliId=id;
+  document.getElementById('m-cli-title').textContent=id?'Editar cliente':'Nuevo cliente';
+  if(!id){ ['mc-nombre','mc-cedula','mc-notas'].forEach(i=>document.getElementById(i).value=''); document.getElementById('mc-reg').value='Tradicional'; }
   om('m-cli');
 };
-window.editCli = function() {
-  if (!CC) return;
-  document.getElementById('mc-nombre').value = CC.nombre||'';
-  document.getElementById('mc-cedula').value = CC.cedula||'';
-  document.getElementById('mc-reg').value    = CC.regimen||'Tradicional';
-  document.getElementById('mc-notas').value  = CC.notas||'';
-  editCliId = CC.id;
-  document.getElementById('m-cli-title').textContent = 'Editar cliente';
+window.editCli = function(){
+  if(!CC) return;
+  document.getElementById('mc-nombre').value=CC.nombre||'';
+  document.getElementById('mc-cedula').value=CC.cedula||'';
+  document.getElementById('mc-reg').value=CC.regimen||'Tradicional';
+  document.getElementById('mc-notas').value=CC.notas||'';
+  editCliId=CC.id;
+  document.getElementById('m-cli-title').textContent='Editar cliente';
   om('m-cli');
 };
-window.saveCli = async function() {
-  const nombre = document.getElementById('mc-nombre').value.trim();
-  if (!nombre){ toast('El nombre es requerido','err'); return; }
-  const data = { nombre, cedula:document.getElementById('mc-cedula').value.trim(), regimen:document.getElementById('mc-reg').value, notas:document.getElementById('mc-notas').value.trim(), activo:true };
-  try {
-    if (editCliId) {
-      await updateDoc(doc(db,'clientes',editCliId), data);
-      toast('Cliente actualizado','ok');
-      CC = { ...CC, ...data };
-      document.getElementById('cd-name').textContent = data.nombre;
-      document.getElementById('cd-meta').textContent = `${data.cedula||'Sin cédula'} · ${data.regimen||'Tradicional'}`;
-      document.getElementById('cd-av').textContent   = initials(data.nombre);
-      document.getElementById('bc-name').textContent = data.nombre;
-    } else {
-      await addDoc(collection(db,'clientes'), {...data, creadoEn:serverTimestamp(), creadoPor:CU.uid});
-      toast('Cliente creado','ok');
-    }
+window.saveCli = async function(){
+  const nombre=document.getElementById('mc-nombre').value.trim();
+  if(!nombre){ toast('El nombre es requerido','err'); return; }
+  const data={nombre,cedula:document.getElementById('mc-cedula').value.trim(),regimen:document.getElementById('mc-reg').value,notas:document.getElementById('mc-notas').value.trim(),activo:true};
+  try{
+    if(editCliId){ await updateDoc(doc(db,'clientes',editCliId),data); toast('Cliente actualizado','ok'); CC={...CC,...data}; document.getElementById('cd-name').textContent=data.nombre; document.getElementById('cd-meta').textContent=`${data.cedula||'Sin cédula'} · ${data.regimen}`; document.getElementById('cd-av').textContent=initials(data.nombre); document.getElementById('bc-name').textContent=data.nombre; }
+    else{ await addDoc(collection(db,'clientes'),{...data,creadoEn:serverTimestamp(),creadoPor:CU.uid}); toast('Cliente creado','ok'); }
     cm('m-cli'); loadCli();
-  } catch(e){ console.error('saveCli',e); toast('Error guardando cliente','err'); }
+  }catch(e){ console.error(e); toast('Error guardando cliente','err'); }
 };
 
 // ── CLIENTE DETALLE ──
-window.loadCdet = async function(id) {
-  try {
+window.loadCdet = async function(id){
+  try{
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
     document.getElementById('v-cdet').classList.add('show');
     document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
     document.getElementById('si-cli').classList.add('active');
-
-    const cDoc = await getDoc(doc(db,'clientes',id));
-    if (!cDoc.exists()){ toast('Cliente no encontrado','err'); return; }
-    CC = { id, ...cDoc.data() };
-
-    document.getElementById('bc-name').textContent  = CC.nombre;
-    document.getElementById('cd-av').textContent    = initials(CC.nombre);
-    document.getElementById('cd-name').textContent  = CC.nombre;
-    document.getElementById('cd-meta').textContent  = `${CC.cedula||'Sin cédula'} · ${CC.regimen||'Tradicional'}`;
-
-    const psSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','pendiente')));
-    const pends = psSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-      const da=a.fechaVence?.toDate?.()??new Date(9999,0,1);
-      const db2=b.fechaVence?.toDate?.()??new Date(9999,0,1);
-      return da-db2;
-    });
-
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
-    const urg  = pends.filter(p=>daysLeft(p.fechaVence)<=5);
-    const warn = pends.filter(p=>{ const d=daysLeft(p.fechaVence); return d>5&&d<=15; });
-    const ok   = pends.filter(p=>daysLeft(p.fechaVence)>15);
-
-    document.getElementById('ms-urg').textContent  = urg.length;
-    document.getElementById('ms-mes').textContent  = pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
-
-    const doneSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','completado')));
-    document.getElementById('ms-done').textContent = doneSnap.size;
-    const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',id)));
-    document.getElementById('ms-tot').textContent  = obSnap.size;
-
-    renderPC('p-urgent',  urg);
-    renderPC('p-warning', warn);
-    renderPC('p-ok',      ok);
-
-    const histDocs = doneSnap.docs.sort((a,b)=>{ const da=a.data().completadoEn?.toDate?.()??new Date(0); const db2=b.data().completadoEn?.toDate?.()??new Date(0); return db2-da; });
+    const cDoc=await getDoc(doc(db,'clientes',id));
+    if(!cDoc.exists()){ toast('Cliente no encontrado','err'); return; }
+    CC={id,...cDoc.data()};
+    document.getElementById('bc-name').textContent=CC.nombre;
+    document.getElementById('cd-av').textContent=initials(CC.nombre);
+    document.getElementById('cd-name').textContent=CC.nombre;
+    document.getElementById('cd-meta').textContent=`${CC.cedula||'Sin cédula'} · ${CC.regimen||'Tradicional'}`;
+    const psSnap=await getDocs(query(collection(db,'pendientes'),where('clienteId','==',id),where('estado','==','pendiente')));
+    const pends=sortByDate(psSnap.docs.map(d=>({id:d.id,...d.data()})));
+    const hoy=new Date(); hoy.setHours(0,0,0,0);
+    const finMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0);
+    const urg=pends.filter(p=>daysLeft(p.fechaVence)<=5);
+    const warn=pends.filter(p=>{ const d=daysLeft(p.fechaVence); return d>5&&d<=15; });
+    const ok=pends.filter(p=>daysLeft(p.fechaVence)>15);
+    document.getElementById('ms-urg').textContent=urg.length;
+    document.getElementById('ms-mes').textContent=pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
+    const doneSnap=await getDocs(query(collection(db,'pendientes'),where('clienteId','==',id),where('estado','==','completado')));
+    document.getElementById('ms-done').textContent=doneSnap.size;
+    document.getElementById('ms-tot').textContent=pends.length;
+    renderPC('p-urgent',urg); renderPC('p-warning',warn); renderPC('p-ok',ok);
+    const histDocs=doneSnap.docs.sort((a,b)=>{ const da=a.data().completadoEn?.toDate?.()??new Date(0); const db2=b.data().completadoEn?.toDate?.()??new Date(0); return db2-da; });
     renderHist(histDocs.slice(0,10));
-  } catch(e){ console.error('loadCdet',e); toast('Error cargando cliente','err'); }
+  }catch(e){ console.error('loadCdet',e); toast('Error cargando cliente','err'); }
 };
 
-function renderPC(cid, items) {
-  const el = document.getElementById(cid);
-  if (!items.length){ el.innerHTML=`<div style="font-size:12.5px;color:var(--muted);padding:4px 0 12px">Sin pendientes en esta categoría</div>`; return; }
-  el.innerHTML = items.map(p=>{
-    const d = daysLeft(p.fechaVence);
-    return `<div class="pc ${urgCls(d)}" id="pc-${p.id}">
-      <div class="chk" id="chk-${p.id}" onclick="openDone('${p.id}','${(p.tipo||'').replace(/'/g,"\\'")}','${p.periodo||''}')">✓</div>
+function renderPC(cid, items){
+  const el=document.getElementById(cid);
+  if(!items.length){ el.innerHTML=`<div style="font-size:12.5px;color:var(--muted);padding:4px 0 12px">Sin pendientes en esta categoría</div>`; return; }
+  el.innerHTML=items.map(p=>{
+    const d=daysLeft(p.fechaVence);
+    const cls=p.manual?'manual':urgCls(d);
+    const tipoTag=p.manual?`<span class="badge b-purple" style="font-size:10px;margin-left:6px">Libre</span>`:'';
+    return `<div class="pc ${cls}" id="pc-${p.id}">
+      <div class="chk" id="chk-${p.id}" onclick="openDone('${p.id}','${(p.tipo||p.descripcion||'').replace(/'/g,"\\'")}','${(p.periodo||p.descripcion||'').replace(/'/g,"\\'")}')">✓</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;margin-bottom:2px" id="pct-${p.id}">${p.tipo||'—'}</div>
-        <div style="font-size:12px;color:var(--muted)">Período: ${p.periodo||'—'}${p.nota?' · '+p.nota:''}</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:3px" id="pct-${p.id}">${p.tipo||p.descripcion||'—'}${tipoTag}</div>
+        <div style="font-size:12px;color:var(--muted)">${p.periodo?'Período: '+p.periodo:''}${p.nota?' · '+p.nota:''}</div>
       </div>
       <div class="pc-right">
+        <span class="resp-pill">👤 ${p.responsable||'—'}</span>
         <div class="pc-date">Vence ${fmtDate(p.fechaVence)}</div>
         <span class="badge ${badgeCls(d)}">${daysLbl(d)}</span>
       </div>
@@ -755,122 +740,143 @@ function renderPC(cid, items) {
   }).join('');
 }
 
-function renderHist(docs) {
-  const el = document.getElementById('hist-list');
-  if (!docs.length){ el.innerHTML=`<div style="padding:18px;text-align:center;font-size:12.5px;color:var(--muted)">Sin completadas aún</div>`; return; }
-  el.innerHTML = docs.map(d=>{
-    const p=d.data(); const tard=p.diasTardio||0;
-    const tag = tard<=0 ? `<span class="htag htag-g">A tiempo</span>` : `<span class="htag htag-r">${tard}d tarde</span>`;
-    return `<div class="hi">
-      <div class="hd" style="background:${tard<=0?'var(--green)':'var(--red)'}"></div>
-      <div style="flex:1"><div class="ht">${p.tipo||'—'} — ${p.periodo||'—'} ${tag}</div><div class="hm">${p.realizadoPor||'—'}${p.notaCompletado?' · '+p.notaCompletado:''}</div></div>
-      <div class="hdate">${fmtDate(p.completadoEn)}</div>
-    </div>`;
+function renderHist(docs){
+  const el=document.getElementById('hist-list');
+  if(!docs.length){ el.innerHTML=`<div style="padding:18px;text-align:center;font-size:12.5px;color:var(--muted)">Sin completadas aún</div>`; return; }
+  el.innerHTML=docs.map(d=>{ const p=d.data(); const tard=p.diasTardio||0; const tag=tard<=0?`<span class="htag htag-g">A tiempo</span>`:`<span class="htag htag-r">${tard}d tarde</span>`;
+    return `<div class="hi"><div class="hd" style="background:${tard<=0?'var(--green)':'var(--red)'}"></div><div style="flex:1"><div class="ht">${p.tipo||p.descripcion||'—'} — ${p.periodo||p.descripcion||'—'} ${tag}</div><div class="hm">${p.realizadoPor||'—'}${p.notaCompletado?' · '+p.notaCompletado:''}</div></div><div class="hdate">${fmtDate(p.completadoEn)}</div></div>`;
   }).join('');
 }
 
 // ── MARCAR DONE ──
-window.openDone = function(id, tipo, periodo) {
-  pendDoneId = id;
-  document.getElementById('m-done-sub').textContent = `${tipo} — ${periodo}`;
-  document.getElementById('md-nota').value = '';
-  om('m-done');
+window.openDone = function(id,tipo,periodo){ pendDoneId=id; document.getElementById('m-done-sub').textContent=`${tipo} — ${periodo}`; document.getElementById('md-nota').value=''; om('m-done'); };
+window.confirmDone = async function(){
+  if(!pendDoneId) return;
+  const quien=document.getElementById('md-quien').value, nota=document.getElementById('md-nota').value.trim();
+  try{
+    const pDoc=await getDoc(doc(db,'pendientes',pendDoneId));
+    const d=daysLeft(pDoc.data().fechaVence);
+    await updateDoc(doc(db,'pendientes',pendDoneId),{estado:'completado',realizadoPor:quien,notaCompletado:nota,completadoEn:serverTimestamp(),diasTardio:d<0?Math.abs(d):0});
+    const card=document.getElementById(`pc-${pendDoneId}`), chk=document.getElementById(`chk-${pendDoneId}`), tit=document.getElementById(`pct-${pendDoneId}`);
+    if(chk) chk.classList.add('checked'); if(tit) tit.style.textDecoration='line-through'; if(card) card.classList.add('fading');
+    setTimeout(()=>{ if(card) card.style.display='none'; },900);
+    cm('m-done'); toast(`✓ Completado por ${quien}`,'ok');
+    if(CC) setTimeout(()=>loadCdet(CC.id),1100);
+  }catch(e){ console.error(e); toast('Error al guardar','err'); }
 };
-window.confirmDone = async function() {
-  if (!pendDoneId) return;
-  const quien = document.getElementById('md-quien').value;
-  const nota  = document.getElementById('md-nota').value.trim();
-  try {
-    const pDoc = await getDoc(doc(db,'pendientes',pendDoneId));
-    const d    = daysLeft(pDoc.data().fechaVence);
-    await updateDoc(doc(db,'pendientes',pendDoneId), {
-      estado:'completado', realizadoPor:quien, notaCompletado:nota,
-      completadoEn:serverTimestamp(), diasTardio:d<0?Math.abs(d):0
+
+// ── PENDIENTE LIBRE ──
+window.openMP = function(){
+  if(!CC) return;
+  document.getElementById('m-pend-sub').textContent=`Para: ${CC.nombre}`;
+  document.getElementById('mp-desc').value=''; document.getElementById('mp-nota').value=''; document.getElementById('mp-resp').value='Carlos';
+  const hoy=new Date(); document.getElementById('mp-fecha').value=hoy.toISOString().split('T')[0];
+  om('m-pend');
+};
+window.savePend = async function(){
+  if(!CC) return;
+  const desc=document.getElementById('mp-desc').value.trim();
+  if(!desc){ toast('La descripción es requerida','err'); return; }
+  const fechaStr=document.getElementById('mp-fecha').value;
+  const fecha=fechaStr?new Date(fechaStr+'T12:00:00'):new Date();
+  try{
+    await addDoc(collection(db,'pendientes'),{
+      clienteId:CC.id, obligacionId:null, tipo:null, descripcion:desc,
+      periodo:desc, fechaVence:Timestamp.fromDate(fecha),
+      estado:'pendiente', responsable:document.getElementById('mp-resp').value,
+      nota:document.getElementById('mp-nota').value.trim(),
+      realizadoPor:'', creadoEn:serverTimestamp(), auto:false, manual:true
     });
-    const card = document.getElementById(`pc-${pendDoneId}`);
-    const chk  = document.getElementById(`chk-${pendDoneId}`);
-    const tit  = document.getElementById(`pct-${pendDoneId}`);
-    if (chk) chk.classList.add('checked');
-    if (tit) tit.style.textDecoration='line-through';
-    if (card) card.classList.add('fading');
-    setTimeout(()=>{ if(card) card.style.display='none'; }, 900);
-    cm('m-done');
-    toast(`✓ Completado por ${quien}`,'ok');
-    if (CC) setTimeout(()=>loadCdet(CC.id), 1100);
-  } catch(e){ console.error('confirmDone',e); toast('Error al guardar','err'); }
+    cm('m-pend'); toast('Pendiente agregado','ok'); loadCdet(CC.id);
+  }catch(e){ console.error(e); toast('Error guardando','err'); }
 };
 
 // ── OBLIGACIONES ──
-window.openMO = async function() {
-  if (!CC) return;
-  document.getElementById('m-ob-sub').textContent = `Para: ${CC.nombre}`;
-  const snap = await getDocs(collection(db,'tipos_obligacion'));
-  const sel  = document.getElementById('mo-tipo');
-  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+window.openMO = async function(){
+  if(!CC) return;
+  document.getElementById('m-ob-sub').textContent=`Para: ${CC.nombre}`;
+  const snap=await getDocs(collection(db,'tipos_obligacion'));
+  const sel=document.getElementById('mo-tipo');
+  sel.innerHTML='<option value="">— Seleccionar —</option>';
   snap.docs.forEach(d=>{ const t=d.data(); sel.innerHTML+=`<option value="${d.id}" data-freq="${t.frecuencia}" data-dia="${t.dia}">${t.nombre}</option>`; });
+  document.getElementById('mo-resp').value='Carlos';
   om('m-ob');
 };
-window.onTipoChange = function() {
-  const opt = document.getElementById('mo-tipo').selectedOptions[0];
-  if (!opt?.dataset.freq) return;
-  document.getElementById('mo-freq').value = opt.dataset.freq;
-  document.getElementById('mo-dia').value  = opt.dataset.dia;
+window.onTipoChange = function(){
+  const opt=document.getElementById('mo-tipo').selectedOptions[0];
+  if(!opt?.dataset.freq) return;
+  document.getElementById('mo-freq').value=opt.dataset.freq; document.getElementById('mo-dia').value=opt.dataset.dia;
 };
-window.saveOb = async function() {
-  if (!CC) return;
-  const tipoId = document.getElementById('mo-tipo').value;
-  if (!tipoId){ toast('Seleccioná un tipo de obligación','err'); return; }
-  try {
-    const tDoc = await getDoc(doc(db,'tipos_obligacion',tipoId));
-    const tipo = tDoc.data().nombre;
-    const data = {
-      clienteId:CC.id, tipoId, tipo,
-      frecuencia: document.getElementById('mo-freq').value,
-      dia:        parseInt(document.getElementById('mo-dia').value)||15,
-      aviso:      parseInt(document.getElementById('mo-aviso').value)||7,
-      nota:       document.getElementById('mo-nota').value.trim(),
-      activo:true, creadoEn:serverTimestamp(), creadoPor:CU.uid
-    };
-    const ref = await addDoc(collection(db,'obligaciones'), data);
-    cm('m-ob');
-    toast('Generando pendientes automáticos...','ok');
-    await genPendientes(CC.id, ref.id, data);
-    toast('✓ Obligación creada y pendientes generados','ok');
+window.saveOb = async function(){
+  if(!CC) return;
+  const tipoId=document.getElementById('mo-tipo').value;
+  if(!tipoId){ toast('Seleccioná un tipo','err'); return; }
+  try{
+    const tDoc=await getDoc(doc(db,'tipos_obligacion',tipoId));
+    const tipo=tDoc.data().nombre;
+    const data={clienteId:CC.id,tipoId,tipo,frecuencia:document.getElementById('mo-freq').value,dia:parseInt(document.getElementById('mo-dia').value)||15,aviso:parseInt(document.getElementById('mo-aviso').value)||7,responsable:document.getElementById('mo-resp').value,nota:document.getElementById('mo-nota').value.trim(),activo:true,creadoEn:serverTimestamp(),creadoPor:CU.uid};
+    const ref=await addDoc(collection(db,'obligaciones'),data);
+    cm('m-ob'); toast('Generando pendientes...','ok');
+    const creados=await genPendientes(CC.id,ref.id,data);
+    toast(`✓ Obligación creada, ${creados} pendiente${creados!==1?'s':''} generado${creados!==1?'s':''}`, 'ok');
     loadCdet(CC.id);
-  } catch(e){ console.error('saveOb',e); toast('Error guardando obligación','err'); }
+  }catch(e){ console.error(e); toast('Error guardando','err'); }
 };
 
-// ── CONFIG ──
-async function loadCfg() {
-  try {
-    const snap = await getDocs(collection(db,'tipos_obligacion'));
-    const el   = document.getElementById('cfg-list');
-    if (!snap.size){ el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos aún</div></div>`; return; }
-    const fl = {mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
-    let h = '';
-    snap.docs.forEach(d=>{ const t=d.data(); h+=`<div class="cfg-row"><div class="cfg-name">${t.nombre}<br><span style="font-size:11.5px;color:var(--muted)">${t.descripcion||''}</span></div><span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span><span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:60px;text-align:right">Día ${t.dia||'—'}</span></div>`; });
-    el.innerHTML = h;
-  } catch(e){ console.error('loadCfg',e); }
+// ── CONFIG TIPOS ──
+async function loadCfg(){
+  try{
+    const snap=await getDocs(collection(db,'tipos_obligacion'));
+    const el=document.getElementById('cfg-list');
+    if(!snap.size){ el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos aún</div></div>`; return; }
+    const fl={mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
+    let h='';
+    snap.docs.forEach(d=>{
+      const t=d.data();
+      h+=`<div class="cfg-row">
+        <div class="cfg-name">${t.nombre}<br><span style="font-size:11.5px;color:var(--muted)">${t.descripcion||''}</span></div>
+        <span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span>
+        <span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:60px;text-align:right">Día ${t.dia||'—'}</span>
+        <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="editTO('${d.id}')">✏️</button>
+      </div>`;
+    });
+    el.innerHTML=h;
+  }catch(e){ console.error(e); }
 }
-window.openMTO = function() {
-  document.getElementById('mto-nombre').value=''; document.getElementById('mto-desc').value='';
+window.openMTO = function(){
+  editTOId=null;
+  document.getElementById('m-to-title').textContent='Nuevo tipo de obligación';
+  ['mto-nombre','mto-desc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('mto-freq').value='mensual'; document.getElementById('mto-dia').value='15';
   om('m-to');
 };
-window.saveTO = async function() {
-  const nombre = document.getElementById('mto-nombre').value.trim();
-  if (!nombre){ toast('El nombre es requerido','err'); return; }
-  try {
-    await addDoc(collection(db,'tipos_obligacion'), { nombre, descripcion:document.getElementById('mto-desc').value.trim(), frecuencia:document.getElementById('mto-freq').value, dia:parseInt(document.getElementById('mto-dia').value)||15, activo:true, creadoPor:CU.uid });
-    toast('Tipo creado','ok'); cm('m-to'); loadCfg();
-  } catch(e){ toast('Error guardando','err'); }
+window.editTO = async function(id){
+  editTOId=id;
+  const d=await getDoc(doc(db,'tipos_obligacion',id));
+  const t=d.data();
+  document.getElementById('m-to-title').textContent='Editar tipo de obligación';
+  document.getElementById('mto-nombre').value=t.nombre||'';
+  document.getElementById('mto-desc').value=t.descripcion||'';
+  document.getElementById('mto-freq').value=t.frecuencia||'mensual';
+  document.getElementById('mto-dia').value=t.dia||15;
+  om('m-to');
+};
+window.saveTO = async function(){
+  const nombre=document.getElementById('mto-nombre').value.trim();
+  if(!nombre){ toast('El nombre es requerido','err'); return; }
+  const data={nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};
+  try{
+    if(editTOId){ await updateDoc(doc(db,'tipos_obligacion',editTOId),data); toast('Tipo actualizado','ok'); }
+    else{ await addDoc(collection(db,'tipos_obligacion'),{...data,creadoPor:CU.uid}); toast('Tipo creado','ok'); }
+    cm('m-to'); loadCfg();
+  }catch(e){ toast('Error guardando','err'); }
 };
 
 // ── NOTIF ──
-window.enableNotif = async function() {
-  if (!('Notification' in window)){ toast('Tu navegador no soporta notificaciones','err'); return; }
-  const p = await Notification.requestPermission();
-  if (p==='granted'){ document.getElementById('btn-notif').style.display='none'; document.getElementById('notif-ok').style.display=''; toast('✓ Notificaciones activadas','ok'); }
+window.enableNotif = async function(){
+  if(!('Notification' in window)){ toast('Tu navegador no soporta notificaciones','err'); return; }
+  const p=await Notification.requestPermission();
+  if(p==='granted'){ document.getElementById('btn-notif').style.display='none'; document.getElementById('notif-ok').style.display=''; toast('✓ Notificaciones activadas','ok'); }
   else toast('Permiso denegado','err');
 };
 </script>
