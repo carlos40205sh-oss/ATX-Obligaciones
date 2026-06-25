@@ -1046,19 +1046,35 @@ async function loadCfg(){
   try{
     const snap=await getDocs(collection(db,'tipos_obligacion'));
     const el=document.getElementById('cfg-list');
-    if(!snap.size){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos</div></div>';return;}
+    if(!snap.size){el.innerHTML='<div class="empty"><div class="empty-title">Sin tipos aún</div></div>';return;}
     const fl={mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
     let h='';
     snap.docs.forEach(d=>{
       const t=d.data();
-      h+='<div class="cfg-row"><div class="cfg-name">'+t.nombre+'<br><span style="font-size:11px;color:var(--muted)">'+( t.descripcion||'')+'</span></div><span class="cfg-freq">'+(fl[t.frecuencia]||t.frecuencia)+'</span><span style="font-size:11.5px;color:var(--muted);font-family:JetBrains Mono,monospace;min-width:55px;text-align:right">Día '+(t.dia||'—')+'</span><button class="btn btn-ghost btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editTO(''+d.id+'')" >✏️</button></div>';
+      const row=document.createElement('div');
+      row.className='cfg-row';
+      row.innerHTML='<div class="cfg-name"><b>'+t.nombre+'</b><br><small style="color:var(--muted)">'+( t.descripcion||'')+'</small></div>'
+        +'<span class="cfg-freq">'+(fl[t.frecuencia]||t.frecuencia)+'</span>'
+        +'<span style="font-size:11.5px;color:var(--muted);min-width:55px;text-align:right">Día '+(t.dia||'-')+'</span>'
+        +'<button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="editTO(\''+d.id+'\')">✏️</button>';
+      h+=row.outerHTML;
     });
     el.innerHTML=h;
-  }catch(e){console.error(e);}
+  }catch(e){console.error('loadCfg error',e);}
 }
-window.openMTO=function(){editTOId=null;document.getElementById('m-to-title').textContent='Nuevo tipo';['mto-nombre','mto-desc'].forEach(i=>document.getElementById(i).value='');document.getElementById('mto-freq').value='mensual';document.getElementById('mto-dia').value='15';om('m-to');};
-window.editTO=async function(id){editTOId=id;const d=await getDoc(doc(db,'tipos_obligacion',id));const t=d.data();document.getElementById('m-to-title').textContent='Editar tipo';document.getElementById('mto-nombre').value=t.nombre||'';document.getElementById('mto-desc').value=t.descripcion||'';document.getElementById('mto-freq').value=t.frecuencia||'mensual';document.getElementById('mto-dia').value=t.dia||15;om('m-to');};
-window.saveTO=async function(){const nombre=document.getElementById('mto-nombre').value.trim();if(!nombre){toast('El nombre es requerido','err');return;}const data={nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};try{if(editTOId){await updateDoc(doc(db,'tipos_obligacion',editTOId),data);toast('Tipo actualizado','ok');}else{await addDoc(collection(db,'tipos_obligacion'),{...data,creadoPor:CU.uid});toast('Tipo creado','ok');}cm('m-to');loadCfg();}catch(e){toast('Error','err');}};
+window.openMTO=function(){editTOId=null;document.getElementById('m-to-title').textContent='Nuevo tipo';['mto-nombre','mto-desc'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('mto-freq').value='mensual';document.getElementById('mto-dia').value='15';om('m-to');};
+window.editTO=async function(id){editTOId=id;var d=await getDoc(doc(db,'tipos_obligacion',id));var t=d.data();document.getElementById('m-to-title').textContent='Editar tipo';document.getElementById('mto-nombre').value=t.nombre||'';document.getElementById('mto-desc').value=t.descripcion||'';document.getElementById('mto-freq').value=t.frecuencia||'mensual';document.getElementById('mto-dia').value=t.dia||15;om('m-to');};
+window.saveTO=async function(){
+  var nombre=document.getElementById('mto-nombre').value.trim();
+  if(!nombre){toast('El nombre es requerido','err');return;}
+  var data={nombre:nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};
+  try{
+    if(editTOId){await updateDoc(doc(db,'tipos_obligacion',editTOId),data);toast('Tipo actualizado','ok');}
+    else{await addDoc(collection(db,'tipos_obligacion'),Object.assign({},data,{creadoPor:CU.uid}));toast('Tipo creado','ok');}
+    cm('m-to');loadCfg();
+  }catch(e){toast('Error guardando','err');}
+};
+
 
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Tu navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
 </script>
