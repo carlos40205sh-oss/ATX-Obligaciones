@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f1117">
+<meta name="description" content="ATX — Control de obligaciones tributarias">
+<title>ATX</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  --bg:         #0f1117;
+  --surface:    #181c27;
+  --surface2:   #1e2333;
+  --surface3:   #242840;
+  --border:     #2a3045;
+  --border2:    #353d58;
+  --text:       #e8ecf4;
+  --text2:      #a8b4d0;
+  --muted:      #6b7799;
+  --accent:     #4f7cff;
+  --accent-dim: rgba(79,124,255,0.12);
+  --red:        #ff4f6a;
+  --red-dim:    rgba(255,79,106,0.12);
+  --yellow:     #ffb930;
+  --yellow-dim: rgba(255,185,48,0.12);
+  --green:      #2ecc8a;
+  --green-dim:  rgba(46,204,138,0.12);
+  --purple:     #a855f7;
+  --radius:     10px;
+  --radius-lg:  14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+input, textarea, select, button { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ═══════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════ */
+.mono { font-family: 'JetBrains Mono', monospace; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-4 { gap: 4px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn:hover { opacity: 0.87; }
+.btn:active { transform: scale(0.97); }
+.btn-primary   { background: var(--accent); color: white; }
+.btn-success   { background: var(--green); color: var(--bg); }
+.btn-ghost     { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-danger    { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-dim); }
+.btn-sm        { padding: 6px 12px; font-size: 12px; }
+.btn-icon      { padding: 8px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); cursor: pointer; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* ═══════════════════════════════════════
+   BADGES & PILLS
+═══════════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.badge-red    { background: var(--red-dim);    color: var(--red); }
+.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+.badge-gray   { background: rgba(107,119,153,0.12); color: var(--muted); }
+.badge-blue   { background: var(--accent-dim); color: var(--accent); }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+.dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.dot-green  { background: var(--green); }
+.dot-gray   { background: var(--muted); }
+
+/* ═══════════════════════════════════════
+   FORM ELEMENTS
+═══════════════════════════════════════ */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.form-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 13px; color: var(--text);
+  font-size: 13.5px; outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--muted); }
+select.form-input { cursor: pointer; }
+select.form-input option { background: var(--surface2); }
+textarea.form-input { resize: vertical; min-height: 70px; }
+
+/* ═══════════════════════════════════════
+   CARDS
+═══════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card-sm { padding: 14px 18px; }
+
+/* ═══════════════════════════════════════
+   PAGES SYSTEM
+═══════════════════════════════════════ */
+.page { display: none; }
+.page.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ═══════════════════════════════════════
+   TOPBAR
+═══════════════════════════════════════ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 56px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100; flex-shrink: 0;
+}
+.topbar-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600; font-size: 16px; color: var(--accent);
+  letter-spacing: 2px;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-user { font-size: 12.5px; color: var(--muted); }
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  flex-shrink: 0;
+}
+.notif-btn {
+  width: 34px; height: 34px; border-radius: var(--radius);
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px; position: relative;
+}
+.notif-dot {
+  position: absolute; top: 5px; right: 5px;
+  width: 7px; height: 7px; background: var(--red);
+  border-radius: 50%; border: 1.5px solid var(--surface);
+}
+
+/* ═══════════════════════════════════════
+   LAYOUT (sidebar + main)
+═══════════════════════════════════════ */
+.app-layout { display: flex; flex: 1; }
+
+.sidebar {
+  width: 224px; flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 16px 0; display: flex; flex-direction: column;
+  position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto;
+}
+.sidebar-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1.3px;
+  color: var(--muted); text-transform: uppercase;
+  padding: 0 18px; margin: 14px 0 4px;
+}
+.sidebar-section-label:first-child { margin-top: 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 18px; font-size: 13.5px; font-weight: 500;
+  color: var(--muted); cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.12s; user-select: none;
+}
+.nav-item:hover { color: var(--text2); background: var(--surface2); }
+.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+.nav-item .nav-badge { margin-left: auto; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; background: var(--red); color: white; }
+.nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+
+.main-content { flex: 1; padding: 28px 32px; overflow-y: auto; max-width: 1100px; }
+
+/* ═══════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════ */
+.section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
+.section-title-lg { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.section-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.section-label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; margin-top: 22px; }
+.section-label:first-child { margin-top: 0; }
+
+/* ═══════════════════════════════════════
+   STAT CARDS (dashboard)
+═══════════════════════════════════════ */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
+.stat-card { padding: 16px 20px; }
+.stat-card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+.stat-card-val { font-size: 30px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: -1.5px; }
+.stat-card-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+.stat-red    .stat-card-val { color: var(--red); }
+.stat-yellow .stat-card-val { color: var(--yellow); }
+.stat-green  .stat-card-val { color: var(--green); }
+.stat-blue   .stat-card-val { color: var(--accent); }
+
+/* ═══════════════════════════════════════
+   OBLIGATION ROWS (dashboard list)
+═══════════════════════════════════════ */
+.ob-table { overflow: hidden; }
+.ob-table-header {
+  display: grid; grid-template-columns: 24px 1fr 150px 120px 110px 90px;
+  gap: 12px; padding: 9px 18px;
+  font-size: 10.5px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.6px;
+  background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.ob-row {
+  display: grid; grid-template-columns: 24px 1fr 150px 120px 110px 90px;
+  gap: 12px; padding: 12px 18px; align-items: center;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background 0.1s; font-size: 13px;
+}
+.ob-row:last-child { border-bottom: none; }
+.ob-row:hover { background: var(--surface2); }
+.ob-name { font-weight: 500; }
+.ob-client-name { font-size: 12px; color: var(--muted); }
+
+/* ═══════════════════════════════════════
+   CLIENT LIST
+═══════════════════════════════════════ */
+.clients-list { display: flex; flex-direction: column; gap: 8px; }
+.client-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px; cursor: pointer;
+  transition: border-color 0.15s, background 0.12s;
+  border-radius: var(--radius-lg);
+}
+.client-row:hover { background: var(--surface2); border-color: var(--border2); }
+.client-row-avatar {
+  width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-dim), rgba(168,85,247,0.15));
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+.client-row-info { flex: 1; }
+.client-row-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.client-row-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.client-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+.client-ob-pills { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.ob-pill { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); }
+
+/* ═══════════════════════════════════════
+   PENDING CARDS (client detail)
+═══════════════════════════════════════ */
+.pending-cards { display: flex; flex-direction: column; gap: 9px; margin-bottom: 24px; }
+
+.pending-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; border-radius: var(--radius-lg);
+  background: var(--surface); border: 1px solid var(--border);
+  border-left-width: 3px; transition: opacity 0.4s, background 0.15s;
+  position: relative; overflow: hidden;
+}
+.pending-card:hover { background: var(--surface2); }
+.pending-card.urgent  { border-left-color: var(--red); }
+.pending-card.warning { border-left-color: var(--yellow); }
+.pending-card.ok      { border-left-color: var(--green); }
+.pending-card.fading  { opacity: 0.35; }
+
+.check-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border2); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: transparent; flex-shrink: 0;
+  transition: all 0.18s;
+}
+.check-circle:hover { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.check-circle.checked { border-color: var(--green); background: var(--green); color: white; }
+
+.pending-card-info { flex: 1; }
+.pending-card-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.pending-card-title.done { text-decoration: line-through; color: var(--muted); }
+.pending-card-desc { font-size: 12px; color: var(--muted); }
+
+.pending-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.pending-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
+
+/* ═══════════════════════════════════════
+   HISTORIAL TIMELINE
+═══════════════════════════════════════ */
+.hist-list { padding: 4px 0; }
+.hist-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.hist-item:last-child { border-bottom: none; }
+.hist-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+.hist-content { flex: 1; }
+.hist-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.hist-meta { font-size: 11.5px; color: var(--muted); }
+.hist-date { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; padding-top: 2px; }
+.hist-tag { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 20px; margin-left: 6px; }
+.hist-tag-green { background: var(--green-dim); color: var(--green); }
+.hist-tag-red   { background: var(--red-dim);   color: var(--red); }
+
+/* ═══════════════════════════════════════
+   BREADCRUMB
+═══════════════════════════════════════ */
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
+.breadcrumb-link { color: var(--accent); cursor: pointer; }
+.breadcrumb-link:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════
+   CLIENT DETAIL HEADER
+═══════════════════════════════════════ */
+.client-detail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px; gap: 12px; flex-wrap: wrap;
+}
+.client-detail-left { display: flex; align-items: center; gap: 14px; }
+.client-detail-avatar {
+  width: 48px; height: 48px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent-dim), rgba(168,85,247,0.2));
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; color: var(--accent);
+  font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
+}
+.client-detail-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 3px; }
+.client-detail-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+/* ═══════════════════════════════════════
+   MINI STATS
+═══════════════════════════════════════ */
+.mini-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+.mini-stat { padding: 13px 16px; }
+.mini-stat-label { font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.mini-stat-val { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.mini-stat.red    .mini-stat-val { color: var(--red); }
+.mini-stat.yellow .mini-stat-val { color: var(--yellow); }
+.mini-stat.green  .mini-stat-val { color: var(--green); }
+.mini-stat.blue   .mini-stat-val { color: var(--accent); }
+
+/* ═══════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════ */
+#page-login {
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  width: 380px; max-width: 90vw;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 36px 32px;
+}
+.login-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 26px; font-weight: 600; color: var(--accent);
+  letter-spacing: 4px; text-align: center; margin-bottom: 6px;
+}
+.login-tagline { text-align: center; font-size: 12.5px; color: var(--muted); margin-bottom: 28px; }
+.login-error { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12.5px; margin-bottom: 14px; }
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
+  z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-backdrop.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 16px; padding: 28px; width: 440px; max-width: 92vw;
+  max-height: 90vh; overflow-y: auto;
+  transform: scale(0.96) translateY(8px); transition: transform 0.2s;
+}
+.modal-backdrop.show .modal { transform: scale(1) translateY(0); }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.modal-footer { display: flex; gap: 10px; margin-top: 18px; }
+.modal-footer .btn { flex: 1; justify-content: center; padding: 11px; }
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-size: 13px; font-weight: 500;
+  padding: 11px 20px; border-radius: 10px;
+  opacity: 0; transition: all 0.3s; z-index: 900;
+  white-space: nowrap; pointer-events: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 700; }
+.toast.error   { background: var(--red);   color: white;     border-color: var(--red); }
+
+/* ═══════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════ */
+.empty-state {
+  text-align: center; padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.empty-desc { font-size: 13px; }
+
+/* ═══════════════════════════════════════
+   LOADING
+═══════════════════════════════════════ */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px; z-index: 999;
+}
+.loading-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 600; color: var(--accent); letter-spacing: 4px;
+}
+
+/* ═══════════════════════════════════════
+   CONFIG PAGE - obligation config rows
+═══════════════════════════════════════ */
+.config-ob-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.config-ob-row:last-child { border-bottom: none; }
+.config-ob-name { flex: 1; font-weight: 500; }
+.config-ob-freq { font-size: 11.5px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.config-ob-date { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 80px; text-align: right; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .mini-stats { grid-template-columns: repeat(2,1fr); }
+  .ob-table-header { display: none; }
+  .ob-row { grid-template-columns: 24px 1fr auto; }
+  .ob-row > *:nth-child(3), .ob-row > *:nth-child(4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOADING ═══ -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">ATX</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: LOGIN
+═══════════════════════════════════════ -->
+<div class="page" id="page-login">
+  <div class="login-box">
+    <div class="login-logo">ATX</div>
+    <div class="login-tagline">Control de obligaciones tributarias · CR</div>
+
+    <div class="login-error hidden" id="login-error"></div>
+
+    <div class="form-group">
+      <label class="form-label">Correo electrónico</label>
+      <input type="email" class="form-input" id="login-email" placeholder="tu@correo.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input type="password" class="form-input" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:14px; margin-top:4px;" id="login-btn" onclick="doLogin()">
+      Ingresar
+    </button>
+
+    <div style="text-align:center; margin-top:18px; font-size:12px; color:var(--muted)">
+      ¿Olvidaste tu contraseña? <span style="color:var(--accent); cursor:pointer" onclick="doResetPass()">Recuperar</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: APP (dashboard, clientes, etc.)
+═══════════════════════════════════════ -->
+<div class="page" id="page-app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">ATX</div>
+    <div class="topbar-right">
+      <div class="notif-btn" onclick="showView('notificaciones')">
+        🔔
+        <div class="notif-dot" id="notif-dot"></div>
+      </div>
+      <div class="topbar-user" id="topbar-user-name"></div>
+      <div class="user-avatar" id="topbar-avatar" onclick="doLogout()">C</div>
+    </div>
+  </div>
+
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-section-label">Principal</div>
+      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+        <span class="nav-badge hidden" id="nav-badge-dashboard"></span>
+      </div>
+      <div class="nav-item" data-view="notificaciones" onclick="showView('notificaciones')">
+        <span class="nav-icon">🔔</span> Notificaciones
+      </div>
+
+      <div class="sidebar-section-label">Gestión</div>
+      <div class="nav-item" data-view="clientes" onclick="showView('clientes')">
+        <span class="nav-icon">🏢</span> Clientes
+      </div>
+      <div class="sidebar-section-label">Configuración</div>
+      <div class="nav-item" data-view="config" onclick="showView('config')">
+        <span class="nav-icon">⚙️</span> Obligaciones
+      </div>
+      <div class="nav-item" style="margin-top:auto" onclick="doLogout()">
+        <span class="nav-icon">🚪</span> Salir
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- ════ VIEW: DASHBOARD ════ -->
+      <div id="view-dashboard">
+        <div class="section-header">
+          <div>
+            <div class="section-title-lg">Dashboard</div>
+            <div class="section-sub" id="dash-sub">Cargando...</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="card stat-card stat-red">
+            <div class="stat-card-label">Urgentes</div>
+            <div class="stat-card-val" id="stat-urgent">—</div>
+            <div class="stat-card-sub">Vencen en ≤5 días</div>
+          </div>
+          <div class="card stat-card stat-yellow">
+            <div class="stat-card-label">Este mes</div>
+            <div class="stat-card-val" id="stat-month">—</div>
+            <div class="stat-card-sub">Pendientes</div>
+          </div>
+          <div class="card stat-card stat-green">
+            <div class="stat-card-label">Completadas</div>
+            <div class="stat-card-val" id="stat-done">—</div>
+            <div class="stat-card-sub">Este mes</div>
+          </div>
+          <div class="card stat-card stat-blue">
+            <div class="stat-card-label">Clientes</div>
+            <div class="stat-card-val" id="stat-clients">—</div>
+            <div class="stat-card-sub">Activos</div>
+          </div>
+        </div>
+
+        <div class="section-label">⚠️ Próximos vencimientos</div>
+        <div class="card ob-table" id="dash-ob-list">
+          <div class="ob-table-header">
+            <div></div>
+            <div>Obligación</div>
+            <div>Cliente</div>
+            <div>Vence</div>
+            <div>Días restantes</div>
+            <div>Estado</div>
+          </div>
+          <div style="padding:32px; text-align:center; color:var(--muted)">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ VIEW: CLIENTES ════ -->
+      <div id="view-clientes" class="hidden">
+        <div class="section-header">
+          <div>
+            <div class="section-title-lg">Clientes</div>
+            <div class="section-sub" id="clients-sub">—</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalCliente()">＋ Nuevo cliente</button>
+        </div>
+        <div class="clients-list" id="clients-list">
+          <div style="padding:32px; text-align:center; color:var(--muted)"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- ════ VIEW: CLIENTE DETALLE ════ -->
+      <div id="view-cliente-detalle" class="hidden">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="showView('clientes')">🏢 Clientes</span>
+          <span>›</span>
+          <span id="bc-cliente-name">—</span>
+        </div>
+
+        <div class="client-detail-header">
+          <div class="client-detail-left">
+            <div class="client-detail-avatar" id="cd-avatar">—</div>
+            <div>
+              <div class="client-detail-name" id="cd-name">—</div>
+              <div class="client-detail-meta" id="cd-meta">—</div>
+            </div>
+          </div>
+          <div class="flex gap-8 flex-wrap">
+            <button class="btn btn-ghost btn-sm" onclick="openModalObligacion()">＋ Obligación</button>
+            <button class="btn btn-ghost btn-sm" onclick="editarClienteActual()">✏️ Editar</button>
+          </div>
+        </div>
+
+        <div class="mini-stats">
+          <div class="card mini-stat red">
+            <div class="mini-stat-label">Urgentes</div>
+            <div class="mini-stat-val" id="cd-stat-urgent">0</div>
+          </div>
+          <div class="card mini-stat yellow">
+            <div class="mini-stat-label">Este mes</div>
+            <div class="mini-stat-val" id="cd-stat-month">0</div>
+          </div>
+          <div class="card mini-stat green">
+            <div class="mini-stat-label">Completadas</div>
+            <div class="mini-stat-val" id="cd-stat-done">0</div>
+          </div>
+          <div class="card mini-stat blue">
+            <div class="mini-stat-label">Obligaciones</div>
+            <div class="mini-stat-val" id="cd-stat-total">0</div>
+          </div>
+        </div>
+
+        <div class="section-label" id="urgent-section-label">🔴 Urgentes — vencen en menos de 5 días</div>
+        <div class="pending-cards" id="pending-urgent"></div>
+
+        <div class="section-label" id="warning-section-label">🟡 Próximas — este mes</div>
+        <div class="pending-cards" id="pending-warning"></div>
+
+        <div class="section-label">🟢 Más adelante</div>
+        <div class="pending-cards" id="pending-ok"></div>
+
+        <div class="section-label">✅ Completadas recientemente</div>
+        <div class="card" style="padding: 0 18px;">
+          <div class="hist-list" id="hist-list-cliente">
+            <div style="padding:20px; text-align:center; color:var(--muted); font-size:12.5px">Sin completadas aún</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ VIEW: NOTIFICACIONES ════ -->
+      <div id="view-notificaciones" class="hidden">
+        <div class="section-header">
+          <div>
+            <div class="section-title-lg">Notificaciones</div>
+            <div class="section-sub">Alertas automáticas de vencimientos</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="padding:16px 0; border-bottom:1px solid var(--border); margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:600; margin-bottom:6px;">🔔 Notificaciones push</div>
+            <div style="font-size:13px; color:var(--muted); margin-bottom:14px;">Recibí alertas automáticas cuando un vencimiento se acerca. Las notificaciones se activan por cliente según los días de aviso configurados.</div>
+            <button class="btn btn-primary btn-sm" id="btn-enable-notif" onclick="habilitarNotificaciones()">Activar notificaciones en este dispositivo</button>
+            <div style="font-size:12px; color:var(--green); margin-top:8px; display:none" id="notif-ok-msg">✓ Notificaciones activadas</div>
+          </div>
+          <div style="font-size:13px; color:var(--muted);">Las notificaciones automáticas se procesan diariamente mediante Cloud Functions. Cuando configurés una obligación con días de aviso, el sistema te enviará un push automáticamente.</div>
+        </div>
+      </div>
+
+      <!-- ════ VIEW: CONFIG ════ -->
+      <div id="view-config" class="hidden">
+        <div class="section-header">
+          <div>
+            <div class="section-title-lg">Tipos de Obligación</div>
+            <div class="section-sub">Plantillas de obligaciones pre-configuradas para Costa Rica</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalTipoOb()">＋ Nueva tipo</button>
+        </div>
+        <div class="card ob-table" id="tipos-ob-list">
+          <div style="padding:20px; text-align:center; color:var(--muted)"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODALES
+═══════════════════════════════════════ -->
+
+<!-- Modal: Marcar como hecho -->
+<div class="modal-backdrop" id="modal-done">
+  <div class="modal">
+    <div class="modal-title">✅ Marcar como realizado</div>
+    <div class="modal-sub" id="modal-done-sub">¿Confirmar que completaste esta obligación?</div>
+    <div class="form-group">
+      <label class="form-label">Nota (opcional)</label>
+      <textarea class="form-input" id="modal-done-nota" placeholder="Ej: Presentado en ATV, confirmación #12345..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">¿Quién lo realizó?</label>
+      <select class="form-input" id="modal-done-quien">
+        <option value="Carlos">Carlos</option>
+        <option value="Socio">Socio</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-done')">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarDone()">✓ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo / editar cliente -->
+<div class="modal-backdrop" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-title" id="modal-cliente-title">Nuevo cliente</div>
+    <div class="modal-sub">Información básica del cliente</div>
+    <div class="form-group">
+      <label class="form-label">Nombre / Razón social *</label>
+      <input type="text" class="form-input" id="mc-nombre" placeholder="Empresa XYZ S.A.">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cédula jurídica / Física</label>
+      <input type="text" class="form-input" id="mc-cedula" placeholder="3-101-123456">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Régimen tributario</label>
+      <select class="form-input" id="mc-regimen">
+        <option value="Tradicional">Tradicional</option>
+        <option value="Simplificado">Simplificado</option>
+        <option value="Exonerado">Exonerado</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas</label>
+      <textarea class="form-input" id="mc-notas" placeholder="Información adicional..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Agregar obligación a cliente -->
+<div class="modal-backdrop" id="modal-obligacion">
+  <div class="modal">
+    <div class="modal-title">Agregar obligación</div>
+    <div class="modal-sub" id="modal-ob-sub">Configurar obligación recurrente para este cliente</div>
+    <div class="form-group">
+      <label class="form-label">Tipo de obligación *</label>
+      <select class="form-input" id="mo-tipo" onchange="onTipoObChange()">
+        <option value="">— Seleccionar —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Frecuencia</label>
+      <select class="form-input" id="mo-frecuencia">
+        <option value="mensual">Mensual</option>
+        <option value="trimestral">Trimestral</option>
+        <option value="semestral">Semestral</option>
+        <option value="anual">Anual</option>
+        <option value="personalizada">Personalizada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Día de vencimiento (del mes)</label>
+      <input type="number" class="form-input" id="mo-dia" min="1" max="31" value="15">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Avisar con cuántos días de anticipación</label>
+      <input type="number" class="form-input" id="mo-aviso" min="1" max="30" value="7">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nota / referencia</label>
+      <input type="text" class="form-input" id="mo-nota" placeholder="Ej: Hacienda ATV, cuenta corriente...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-obligacion')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarObligacion()">Guardar y generar pendientes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo tipo de obligación -->
+<div class="modal-backdrop" id="modal-tipo-ob">
+  <div class="modal">
+    <div class="modal-title">Nuevo tipo de obligación</div>
+    <div class="modal-sub">Plantilla para usar en cualquier cliente</div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input type="text" class="form-input" id="mto-nombre" placeholder="Ej: Declaración municipal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input type="text" class="form-input" id="mto-desc" placeholder="Ej: Impuesto territorial trimestral">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Frecuencia por defecto</label>
+      <select class="form-input" id="mto-frecuencia">
+        <option value="mensual">Mensual</option>
+        <option value="trimestral">Trimestral</option>
+        <option value="semestral">Semestral</option>
+        <option value="anual">Anual</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Día de vencimiento por defecto</label>
+      <input type="number" class="form-input" id="mto-dia" min="1" max="31" value="15">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-tipo-ob')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarTipoOb()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════
+     FIREBASE + APP JS
+═══════════════════════════════════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
+  query, where, orderBy, serverTimestamp, Timestamp, setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* ───────────────────────────────────────
+   FIREBASE CONFIG — reemplazá con tus datos
+─────────────────────────────────────── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyDA9t2kF4oXLzeHPpVdu1YVbB2NgOIN0_k",
+  authDomain:        "atx-obligaciones.firebaseapp.com",
+  projectId:         "atx-obligaciones",
+  storageBucket:     "atx-obligaciones.firebasestorage.app",
+  messagingSenderId: "219319168826",
+  appId:             "1:219319168826:web:525e18668e835e07736a03",
+  measurementId:     "G-Q5X5KSHRQ5"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ───────────────────────────────────────
+   STATE
+─────────────────────────────────────── */
+let currentUser    = null;
+let currentCliente = null;   // { id, ...data }
+let pendingDoneId  = null;   // id de pendiente a marcar
+let editClienteId  = null;   // null = nuevo, string = editar
+
+/* ───────────────────────────────────────
+   TIPOS DE OBLIGACIÓN PRE-CARGADOS (CR)
+─────────────────────────────────────── */
+const TIPOS_DEFAULT = [
+  { nombre: "D-104 IVA",           descripcion: "Declaración mensual del Impuesto al Valor Agregado", frecuencia: "mensual",    dia: 15 },
+  { nombre: "CCSS Patronal",        descripcion: "Planilla y pago de cargas sociales patronales",       frecuencia: "mensual",    dia: 15 },
+  { nombre: "INS Póliza RT",        descripcion: "Póliza de Riesgos del Trabajo — Instituto Nacional de Seguros", frecuencia: "anual", dia: 1 },
+  { nombre: "D-151 Renta",          descripcion: "Declaración anual del Impuesto sobre la Renta",       frecuencia: "anual",      dia: 15 },
+  { nombre: "D-195 Imp. Utilidades",descripcion: "Declaración de utilidades — personas jurídicas",      frecuencia: "anual",      dia: 15 },
+  { nombre: "Municipalidad",        descripcion: "Patente municipal trimestral",                         frecuencia: "trimestral", dia: 15 },
+  { nombre: "D-140 Modificación",   descripcion: "Modificación de datos en Hacienda",                   frecuencia: "personalizada", dia: 1 },
+  { nombre: "Timbre de Educación",  descripcion: "Timbre de educación y cultura — anual",                frecuencia: "anual",      dia: 31 },
+];
+
+/* ───────────────────────────────────────
+   AUTH
+─────────────────────────────────────── */
+onAuthStateChanged(auth, async (user) => {
+  hideLoading();
+  if (user) {
+    currentUser = user;
+    const name = user.email.split('@')[0];
+    document.getElementById('topbar-user-name').textContent = name;
+    document.getElementById('topbar-avatar').textContent    = name[0].toUpperCase();
+    showPage('page-app');
+    await seedTiposObligacion();
+    showView('dashboard');
+  } else {
+    currentUser = null;
+    showPage('page-login');
+  }
+});
+
+window.doLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+  errEl.classList.add('hidden');
+  btn.textContent = 'Ingresando...';
+  btn.disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    let msg = 'Correo o contraseña incorrectos.';
+    if (e.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Intentá más tarde.';
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.textContent = 'Ingresar';
+    btn.disabled = false;
+  }
+};
+
+window.doLogout = async () => {
+  await signOut(auth);
+};
+
+window.doResetPass = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showToast('Ingresá tu correo primero', 'error'); return; }
+  await sendPasswordResetEmail(auth, email);
+  showToast('Correo de recuperación enviado', 'success');
+};
+
+// Enter en login
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
+
+/* ───────────────────────────────────────
+   HELPERS
+─────────────────────────────────────── */
+function hideLoading() {
+  document.getElementById('loading-screen').style.display = 'none';
+}
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+window.closeModal = closeModal;
+
+// Close on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if(e.target===b) b.classList.remove('show'); });
+});
+
+function initials(name) {
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function formatDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function diasRestantes(ts) {
+  if (!ts) return 999;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return Math.ceil((d - hoy) / 86400000);
+}
+
+function urgencyClass(dias) {
+  if (dias <= 5)  return 'urgent';
+  if (dias <= 15) return 'warning';
+  return 'ok';
+}
+function dotClass(dias) {
+  if (dias <= 5)  return 'dot-red';
+  if (dias <= 15) return 'dot-yellow';
+  return 'dot-green';
+}
+function badgeClass(dias) {
+  if (dias <= 5)  return 'badge-red';
+  if (dias <= 15) return 'badge-yellow';
+  return 'badge-green';
+}
+function diasLabel(dias) {
+  if (dias < 0)  return `${Math.abs(dias)}d vencido`;
+  if (dias === 0) return 'Hoy';
+  return `${dias} días`;
+}
+
+/* ───────────────────────────────────────
+   NAVIGATION
+─────────────────────────────────────── */
+window.showView = function(view) {
+  // Hide all views
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+  // Nav active state
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.view === view);
+  });
+
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.remove('hidden');
+
+  if (view === 'dashboard')        loadDashboard();
+  if (view === 'clientes')         loadClientes();
+  if (view === 'config')           loadTiposOb();
+};
+
+/* ───────────────────────────────────────
+   SEED: tipos de obligación predeterminados
+─────────────────────────────────────── */
+async function seedTiposObligacion() {
+  const snap = await getDocs(collection(db, 'tipos_obligacion'));
+  if (snap.empty) {
+    for (const t of TIPOS_DEFAULT) {
+      await addDoc(collection(db, 'tipos_obligacion'), { ...t, activo: true, creadoPor: currentUser.uid });
+    }
+  }
+}
+
+/* ───────────────────────────────────────
+   GENERADOR DE PENDIENTES
+   Crea pendientes automáticos para una obligación
+─────────────────────────────────────── */
+async function generarPendientes(clienteId, obId, obData) {
+  const hoy    = new Date(); hoy.setHours(0,0,0,0);
+  const { frecuencia, dia, aviso } = obData;
+
+  // Generar los próximos N períodos
+  const periodos = [];
+  const mesesAdelante = frecuencia === 'mensual' ? 3
+    : frecuencia === 'trimestral' ? 6
+    : frecuencia === 'semestral'  ? 12
+    : 13; // anual
+
+  let base = new Date(hoy);
+  for (let i = 0; i < mesesAdelante; i++) {
+    const fecha = new Date(base.getFullYear(), base.getMonth() + i, dia || 15);
+    if (fecha >= hoy) periodos.push(fecha);
+    if (frecuencia === 'trimestral' && periodos.length >= 2) break;
+    if (frecuencia === 'semestral'  && periodos.length >= 2) break;
+    if (frecuencia === 'anual'      && periodos.length >= 1) break;
+  }
+
+  // Para cada período, verificar si ya existe un pendiente
+  for (const fecha of periodos) {
+    const periodoStr = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
+    const q = query(
+      collection(db, 'pendientes'),
+      where('clienteId',    '==', clienteId),
+      where('obligacionId', '==', obId),
+      where('periodo',      '==', periodoStr)
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      await addDoc(collection(db, 'pendientes'), {
+        clienteId,
+        obligacionId: obId,
+        tipo:         obData.tipo,
+        periodo:      periodoStr,
+        fechaVence:   Timestamp.fromDate(fecha),
+        diasAviso:    aviso || 7,
+        estado:       'pendiente',
+        nota:         '',
+        realizadoPor: '',
+        creadoEn:     serverTimestamp(),
+        auto:         true
+      });
+    }
+  }
+}
+
+/* ───────────────────────────────────────
+   DASHBOARD
+─────────────────────────────────────── */
+async function loadDashboard() {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+
+  // Traer todos los pendientes
+  const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente'), orderBy('fechaVence','asc')));
+  const pendientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Traer clientes (para nombre)
+  const cliSnap = await getDocs(collection(db,'clientes'));
+  const clientes = {};
+  cliSnap.docs.forEach(d => { clientes[d.id] = d.data(); });
+
+  // Stats
+  const urgent = pendientes.filter(p => diasRestantes(p.fechaVence) <= 5).length;
+  const mes    = pendientes.filter(p => {
+    const d = p.fechaVence.toDate();
+    return d <= finMes;
+  }).length;
+
+  const doneSnap = await getDocs(query(collection(db,'pendientes'), where('estado','==','completado')));
+  const doneEste = doneSnap.docs.filter(d => {
+    const ts = d.data().completadoEn;
+    if (!ts) return false;
+    const dd = ts.toDate();
+    return dd.getMonth() === hoy.getMonth() && dd.getFullYear() === hoy.getFullYear();
+  }).length;
+
+  document.getElementById('stat-urgent').textContent  = urgent;
+  document.getElementById('stat-month').textContent   = mes;
+  document.getElementById('stat-done').textContent    = doneEste;
+  document.getElementById('stat-clients').textContent = cliSnap.size;
+
+  const mes_nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('dash-sub').textContent = `${mes_nombres[hoy.getMonth()]} ${hoy.getFullYear()} — ${urgent} vencimiento${urgent!==1?'s':''} urgente${urgent!==1?'s':''}`;
+
+  // Badge nav
+  if (urgent > 0) {
+    const b = document.getElementById('nav-badge-dashboard');
+    b.textContent = urgent; b.classList.remove('hidden');
+    document.getElementById('notif-dot').style.display = '';
+  }
+
+  // Tabla de próximos
+  const topPendientes = pendientes.slice(0, 10);
+  const listEl = document.getElementById('dash-ob-list');
+
+  if (topPendientes.length === 0) {
+    listEl.innerHTML = `<div class="ob-table-header" style="border-bottom:none"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div><div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes</div><div class="empty-desc">No hay obligaciones próximas</div></div>`;
+    return;
+  }
+
+  let rows = `<div class="ob-table-header"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>`;
+  for (const p of topPendientes) {
+    const dias   = diasRestantes(p.fechaVence);
+    const cliNom = clientes[p.clienteId]?.nombre || '—';
+    rows += `
+      <div class="ob-row" onclick="irACliente('${p.clienteId}')">
+        <div><span class="dot ${dotClass(dias)}"></span></div>
+        <div>
+          <div class="ob-name">${p.tipo || '—'}</div>
+          <div class="ob-client-name">${p.periodo || ''}</div>
+        </div>
+        <div style="font-size:13px">${cliNom}</div>
+        <div class="mono" style="font-size:12.5px; color:var(--muted)">${formatDate(p.fechaVence)}</div>
+        <div><span class="badge ${badgeClass(dias)}">${diasLabel(dias)}</span></div>
+        <div><span class="badge badge-yellow">Pendiente</span></div>
+      </div>`;
+  }
+  listEl.innerHTML = rows;
+}
+
+window.irACliente = function(id) {
+  loadClienteDetalle(id);
+};
+
+/* ───────────────────────────────────────
+   CLIENTES
+─────────────────────────────────────── */
+async function loadClientes() {
+  const snap = await getDocs(query(collection(db,'clientes'), orderBy('nombre','asc')));
+  const listEl = document.getElementById('clients-list');
+  document.getElementById('clients-sub').textContent = `${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
+
+  if (snap.empty) {
+    listEl.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div><div class="empty-desc">Agregá tu primer cliente para empezar</div></div></div>`;
+    return;
+  }
+
+  // Para cada cliente, contar urgentes
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  let html = '';
+  for (const d of snap.docs) {
+    const c = d.data();
+    const q2 = query(collection(db,'pendientes'), where('clienteId','==',d.id), where('estado','==','pendiente'));
+    const ps  = await getDocs(q2);
+    const urgent = ps.docs.filter(p => diasRestantes(p.data().fechaVence) <= 5).length;
+
+    // Obligaciones del cliente
+    const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',d.id)));
+    const pills  = obSnap.docs.slice(0,4).map(o => `<span class="ob-pill">${o.data().tipo}</span>`).join('');
+
+    const alertTag = urgent > 0
+      ? `<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urgent} urgente${urgent!==1?'s':''}</span>`
+      : `<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
+
+    html += `
+      <div class="card client-row" onclick="loadClienteDetalle('${d.id}')">
+        <div class="client-row-avatar">${initials(c.nombre)}</div>
+        <div class="client-row-info">
+          <div class="client-row-name">${c.nombre}</div>
+          <div class="client-row-meta">${c.cedula || 'Sin cédula'} · ${c.regimen || 'Tradicional'}</div>
+        </div>
+        <div class="client-row-right">
+          ${alertTag}
+          <div class="client-ob-pills">${pills}</div>
+        </div>
+      </div>`;
+  }
+  listEl.innerHTML = html;
+}
+
+window.openModalCliente = function(id=null) {
+  editClienteId = id;
+  document.getElementById('modal-cliente-title').textContent = id ? 'Editar cliente' : 'Nuevo cliente';
+  if (!id) {
+    document.getElementById('mc-nombre').value  = '';
+    document.getElementById('mc-cedula').value  = '';
+    document.getElementById('mc-regimen').value = 'Tradicional';
+    document.getElementById('mc-notas').value   = '';
+  }
+  openModal('modal-cliente');
+};
+
+window.editarClienteActual = function() {
+  if (!currentCliente) return;
+  const c = currentCliente;
+  document.getElementById('mc-nombre').value  = c.nombre  || '';
+  document.getElementById('mc-cedula').value  = c.cedula  || '';
+  document.getElementById('mc-regimen').value = c.regimen || 'Tradicional';
+  document.getElementById('mc-notas').value   = c.notas   || '';
+  editClienteId = c.id;
+  document.getElementById('modal-cliente-title').textContent = 'Editar cliente';
+  openModal('modal-cliente');
+};
+
+window.guardarCliente = async function() {
+  const nombre = document.getElementById('mc-nombre').value.trim();
+  if (!nombre) { showToast('El nombre es requerido', 'error'); return; }
+  const data = {
+    nombre,
+    cedula:   document.getElementById('mc-cedula').value.trim(),
+    regimen:  document.getElementById('mc-regimen').value,
+    notas:    document.getElementById('mc-notas').value.trim(),
+    activo:   true,
+    creadoPor: currentUser.uid
+  };
+  if (editClienteId) {
+    await updateDoc(doc(db,'clientes',editClienteId), data);
+    showToast('Cliente actualizado', 'success');
+  } else {
+    data.creadoEn = serverTimestamp();
+    const ref = await addDoc(collection(db,'clientes'), data);
+    showToast('Cliente creado', 'success');
+  }
+  closeModal('modal-cliente');
+  loadClientes();
+};
+
+/* ───────────────────────────────────────
+   CLIENTE DETALLE
+─────────────────────────────────────── */
+window.loadClienteDetalle = async function(id) {
+  showView('cliente-detalle');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const cDoc = await getDoc(doc(db,'clientes',id));
+  if (!cDoc.exists()) { showToast('Cliente no encontrado','error'); return; }
+  const c = { id, ...cDoc.data() };
+  currentCliente = c;
+
+  // Header
+  document.getElementById('bc-cliente-name').textContent  = c.nombre;
+  document.getElementById('cd-avatar').textContent        = initials(c.nombre);
+  document.getElementById('cd-name').textContent          = c.nombre;
+  document.getElementById('cd-meta').textContent          = `${c.cedula||'Sin cédula'} · ${c.regimen||'Tradicional'}`;
+
+  // Pendientes
+  const psSnap = await getDocs(query(
+    collection(db,'pendientes'),
+    where('clienteId','==',id),
+    where('estado','==','pendiente'),
+    orderBy('fechaVence','asc')
+  ));
+  const pendientes = psSnap.docs.map(d => ({ id:d.id, ...d.data() }));
+
+  const urgent  = pendientes.filter(p => diasRestantes(p.fechaVence) <= 5);
+  const warning = pendientes.filter(p => { const d=diasRestantes(p.fechaVence); return d>5 && d<=15; });
+  const ok      = pendientes.filter(p => diasRestantes(p.fechaVence) > 15);
+
+  document.getElementById('cd-stat-urgent').textContent = urgent.length;
+  document.getElementById('cd-stat-month').textContent  = pendientes.filter(p => {
+    const d = p.fechaVence.toDate(); const hoy=new Date();
+    return d.getMonth()===hoy.getMonth() && d.getFullYear()===hoy.getFullYear();
+  }).length;
+
+  // Completadas
+  const doneSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','completado')));
+  document.getElementById('cd-stat-done').textContent  = doneSnap.size;
+
+  const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',id)));
+  document.getElementById('cd-stat-total').textContent = obSnap.size;
+
+  renderPendingCards('pending-urgent',  urgent);
+  renderPendingCards('pending-warning', warning);
+  renderPendingCards('pending-ok',      ok);
+
+  // Historial (últimas 10)
+  const histSnap = await getDocs(query(
+    collection(db,'pendientes'),
+    where('clienteId','==',id),
+    where('estado','==','completado'),
+    orderBy('completadoEn','desc')
+  ));
+  renderHistorial(histSnap.docs.slice(0,10));
+};
+
+function renderPendingCards(containerId, items) {
+  const el = document.getElementById(containerId);
+  if (items.length === 0) {
+    el.innerHTML = `<div style="font-size:12.5px;color:var(--muted);padding:4px 0">Sin pendientes en esta categoría</div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const dias = diasRestantes(p.fechaVence);
+    return `
+      <div class="pending-card ${urgencyClass(dias)}" id="pcard-${p.id}">
+        <div class="check-circle" id="pcheck-${p.id}" onclick="abrirModalDone('${p.id}','${(p.tipo||'').replace(/'/g,"\\'")}','${p.periodo||''}')">✓</div>
+        <div class="pending-card-info">
+          <div class="pending-card-title" id="ptitle-${p.id}">${p.tipo||'—'}</div>
+          <div class="pending-card-desc">Período: ${p.periodo||'—'}${p.nota ? ' · '+p.nota : ''}</div>
+        </div>
+        <div class="pending-card-right">
+          <div class="pending-date">Vence ${formatDate(p.fechaVence)}</div>
+          <span class="badge ${badgeClass(dias)}">${diasLabel(dias)}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderHistorial(docs) {
+  const el = document.getElementById('hist-list-cliente');
+  if (docs.length === 0) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12.5px">Sin completadas aún</div>`;
+    return;
+  }
+  el.innerHTML = docs.map(d => {
+    const p = d.data();
+    const dias = p.diasTardio || 0;
+    const tag  = dias <= 0
+      ? `<span class="hist-tag hist-tag-green">A tiempo</span>`
+      : `<span class="hist-tag hist-tag-red">${dias}d tarde</span>`;
+    return `
+      <div class="hist-item">
+        <div class="hist-dot ${dias<=0?'dot-green':'dot-red'}"></div>
+        <div class="hist-content">
+          <div class="hist-title">${p.tipo||'—'} — ${p.periodo||'—'} ${tag}</div>
+          <div class="hist-meta">${p.realizadoPor||'—'}${p.notaCompletado?' · '+p.notaCompletado:''}</div>
+        </div>
+        <div class="hist-date">${formatDate(p.completadoEn)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ───────────────────────────────────────
+   MARCAR COMO HECHO
+─────────────────────────────────────── */
+window.abrirModalDone = function(id, tipo, periodo) {
+  pendingDoneId = id;
+  document.getElementById('modal-done-sub').textContent = `${tipo} — ${periodo}`;
+  document.getElementById('modal-done-nota').value = '';
+  openModal('modal-done');
+};
+
+window.confirmarDone = async function() {
+  if (!pendingDoneId) return;
+  const quien = document.getElementById('modal-done-quien').value;
+  const nota  = document.getElementById('modal-done-nota').value.trim();
+
+  // Calcular días de tardanza
+  const pDoc = await getDoc(doc(db,'pendientes',pendingDoneId));
+  const p    = pDoc.data();
+  const hoy  = new Date(); hoy.setHours(0,0,0,0);
+  const dias = diasRestantes(p.fechaVence);
+  const tardio = dias < 0 ? Math.abs(dias) : 0;
+
+  await updateDoc(doc(db,'pendientes',pendingDoneId), {
+    estado:          'completado',
+    realizadoPor:    quien,
+    notaCompletado:  nota,
+    completadoEn:    serverTimestamp(),
+    diasTardio:      tardio
+  });
+
+  // Animar card
+  const card  = document.getElementById(`pcard-${pendingDoneId}`);
+  const check = document.getElementById(`pcheck-${pendingDoneId}`);
+  const title = document.getElementById(`ptitle-${pendingDoneId}`);
+  if (card)  card.classList.add('fading');
+  if (check) check.classList.add('checked');
+  if (title) title.classList.add('done');
+  setTimeout(() => { if(card) card.style.display='none'; }, 1000);
+
+  closeModal('modal-done');
+  showToast(`✓ Marcado como completado por ${quien}`, 'success');
+
+  // Recargar stats
+  if (currentCliente) setTimeout(() => loadClienteDetalle(currentCliente.id), 1200);
+};
+
+/* ───────────────────────────────────────
+   OBLIGACIONES (por cliente)
+─────────────────────────────────────── */
+window.openModalObligacion = async function() {
+  if (!currentCliente) return;
+  document.getElementById('modal-ob-sub').textContent = `Para: ${currentCliente.nombre}`;
+  // Llenar select de tipos
+  const snap = await getDocs(collection(db,'tipos_obligacion'));
+  const sel  = document.getElementById('mo-tipo');
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  snap.docs.forEach(d => {
+    const t = d.data();
+    sel.innerHTML += `<option value="${d.id}" data-freq="${t.frecuencia}" data-dia="${t.dia}">${t.nombre}</option>`;
+  });
+  openModal('modal-obligacion');
+};
+
+window.onTipoObChange = function() {
+  const sel  = document.getElementById('mo-tipo');
+  const opt  = sel.selectedOptions[0];
+  if (!opt || !opt.dataset.freq) return;
+  document.getElementById('mo-frecuencia').value = opt.dataset.freq;
+  document.getElementById('mo-dia').value        = opt.dataset.dia;
+};
+
+window.guardarObligacion = async function() {
+  if (!currentCliente) return;
+  const tipoId = document.getElementById('mo-tipo').value;
+  if (!tipoId) { showToast('Seleccioná un tipo de obligación', 'error'); return; }
+
+  const tipoDoc = await getDoc(doc(db,'tipos_obligacion',tipoId));
+  const tipo    = tipoDoc.data().nombre;
+
+  const data = {
+    clienteId:   currentCliente.id,
+    tipoId,
+    tipo,
+    frecuencia:  document.getElementById('mo-frecuencia').value,
+    dia:         parseInt(document.getElementById('mo-dia').value) || 15,
+    aviso:       parseInt(document.getElementById('mo-aviso').value) || 7,
+    nota:        document.getElementById('mo-nota').value.trim(),
+    activo:      true,
+    creadoEn:    serverTimestamp(),
+    creadoPor:   currentUser.uid
+  };
+
+  const ref = await addDoc(collection(db,'obligaciones'), data);
+  showToast('Obligación agregada. Generando pendientes...', 'success');
+  closeModal('modal-obligacion');
+
+  // Generar pendientes automáticos
+  await generarPendientes(currentCliente.id, ref.id, data);
+  showToast('✓ Pendientes generados automáticamente', 'success');
+  loadClienteDetalle(currentCliente.id);
+};
+
+/* ───────────────────────────────────────
+   TIPOS DE OBLIGACIÓN (config)
+─────────────────────────────────────── */
+async function loadTiposOb() {
+  const snap = await getDocs(collection(db,'tipos_obligacion'));
+  const el   = document.getElementById('tipos-ob-list');
+  if (snap.empty) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos aún</div></div>`;
+    return;
+  }
+  const freqLabel = { mensual:'Mensual', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual', personalizada:'Personalizada' };
+  let html = '';
+  snap.docs.forEach(d => {
+    const t = d.data();
+    html += `
+      <div class="config-ob-row">
+        <div class="config-ob-name">${t.nombre}<br><span style="font-size:11.5px;color:var(--muted)">${t.descripcion||''}</span></div>
+        <div><span class="config-ob-freq">${freqLabel[t.frecuencia]||t.frecuencia}</span></div>
+        <div class="config-ob-date">Día ${t.dia||'—'}</div>
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+window.openModalTipoOb = function() {
+  document.getElementById('mto-nombre').value    = '';
+  document.getElementById('mto-desc').value      = '';
+  document.getElementById('mto-frecuencia').value= 'mensual';
+  document.getElementById('mto-dia').value       = '15';
+  openModal('modal-tipo-ob');
+};
+
+window.guardarTipoOb = async function() {
+  const nombre = document.getElementById('mto-nombre').value.trim();
+  if (!nombre) { showToast('El nombre es requerido','error'); return; }
+  await addDoc(collection(db,'tipos_obligacion'), {
+    nombre,
+    descripcion: document.getElementById('mto-desc').value.trim(),
+    frecuencia:  document.getElementById('mto-frecuencia').value,
+    dia:         parseInt(document.getElementById('mto-dia').value)||15,
+    activo:      true,
+    creadoPor:   currentUser.uid
+  });
+  showToast('Tipo de obligación creado','success');
+  closeModal('modal-tipo-ob');
+  loadTiposOb();
+};
+
+/* ───────────────────────────────────────
+   NOTIFICACIONES (FCM básico)
+─────────────────────────────────────── */
+window.habilitarNotificaciones = async function() {
+  if (!('Notification' in window)) { showToast('Tu navegador no soporta notificaciones','error'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('btn-enable-notif').style.display = 'none';
+    document.getElementById('notif-ok-msg').style.display = '';
+    showToast('✓ Notificaciones activadas','success');
+  } else {
+    showToast('Permiso denegado','error');
+  }
+};
+</script>
+
+</body>
+</html>
