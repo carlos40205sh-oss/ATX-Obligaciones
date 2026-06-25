@@ -303,12 +303,21 @@ textarea.finput{resize:vertical;min-height:70px}
           <div><div class="sec-title">Clientes</div><div class="sec-sub" id="cli-sub">—</div></div>
           <button class="btn btn-primary" onclick="openMC()">＋ Nuevo</button>
         </div>
+        <div class="enc-tabs" style="margin-bottom:16px">
+          <div class="enc-tab active" id="ctab-todos" onclick="loadCli('todos')">👥 Todos</div>
+          <div class="enc-tab" id="ctab-carlos" onclick="loadCli('Carlos')">👤 Carlos</div>
+          <div class="enc-tab" id="ctab-antonio" onclick="loadCli('Antonio')">👤 Antonio</div>
+        </div>
         <div id="cli-list"><div style="padding:24px;text-align:center"><div class="spinner"></div></div></div>
       </div>
 
       <!-- CLIENTE DETALLE -->
       <div class="view" id="v-cdet">
-        <div class="bc"><span class="bcl" onclick="nav('cli')">🏢 Clientes</span><span>›</span><span id="bc-name">—</span></div>
+        <div class="bc">
+          <span class="bcl" onclick="nav('cli')" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);padding:6px 12px;border-radius:var(--r);font-size:13px;font-weight:600;color:var(--text2)">← Clientes</span>
+          <span style="color:var(--border2)">›</span>
+          <span id="bc-name" style="font-size:13px;font-weight:500;color:var(--muted)">—</span>
+        </div>
         <div class="cd-header">
           <div style="display:flex;align-items:center;gap:12px">
             <div class="cd-av" id="cd-av">—</div>
@@ -357,9 +366,10 @@ textarea.finput{resize:vertical;min-height:70px}
           <div class="fg"><label class="flabel">Encargado</label>
             <select class="finput" id="ctrl-enc" style="width:140px" onchange="loadCtrl()">
               <option value="">Todos</option><option value="Carlos">Carlos</option><option value="Antonio">Antonio</option></select></div>
-          <div class="fg"><label class="flabel">Meses</label>
-            <select class="finput" id="ctrl-meses" style="width:120px" onchange="loadCtrl()">
-              <option value="3">3 meses</option><option value="6" selected>6 meses</option><option value="12">12 meses</option></select></div>
+          <div class="fg"><label class="flabel">Desde</label>
+            <input type="month" class="finput" id="ctrl-desde" style="width:150px" onchange="loadCtrl()"></div>
+          <div class="fg"><label class="flabel">Hasta</label>
+            <input type="month" class="finput" id="ctrl-hasta" style="width:150px" onchange="loadCtrl()"></div>
         </div>
         <div class="card" style="padding:0;overflow-x:auto"><div id="ctrl-table"><div style="padding:24px;text-align:center"><div class="spinner"></div></div></div></div>
       </div>
@@ -687,13 +697,19 @@ async function loadDash(){
 }
 
 // ── CLIENTES ──
-async function loadCli(){
+async function loadCli(filtro='todos'){
+  ['todos','carlos','antonio'].forEach(t=>{
+    const el=document.getElementById('ctab-'+t);
+    if(el) el.classList.toggle('active', t===(filtro==='todos'?'todos':filtro.toLowerCase()));
+  });
   try{
     const snap=await getDocs(collection(db,'clientes'));
-    const docs=snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
-    document.getElementById('cli-sub').textContent=`${snap.size} cliente${snap.size!==1?'s':''}`;
+    let docs=snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
+    if(filtro!=='todos') docs=docs.filter(d=>d.data().encargado===filtro);
+    const total=snap.docs.length, mostrando=docs.length;
+    document.getElementById('cli-sub').textContent=filtro==='todos'?`${total} cliente${total!==1?'s':''}`:`${mostrando} de ${total} — ${filtro}`;
     const el=document.getElementById('cli-list');
-    if(!docs.length){el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div></div></div>`;return;}
+    if(!docs.length){el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes${filtro!=='todos'?' para '+filtro:''}</div></div></div>`;return;}
     let html='';
     for(const d of docs){
       const c=d.data();
@@ -708,7 +724,7 @@ async function loadCli(){
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:14px;margin-bottom:2px">${c.nombre}</div>
           <div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">${c.cedula||'Sin cédula'}</div>
-          <div style="margin-top:4px;display:flex;align-items:center;gap:6px flex-wrap:wrap">
+          <div style="margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span class="resp-pill" style="background:${encColor(enc)}1a;color:${encColor(enc)}">👤 ${enc}</span>
             ${pills}
           </div>
@@ -865,15 +881,37 @@ window.loadEnc=async function(enc){
 };
 
 // ── TABLA CONTROL ──
-async function initCtrl(){const snap=await getDocs(collection(db,'tipos_obligacion'));const sel=document.getElementById('ctrl-tipo');sel.innerHTML='<option value="">Todos</option>';snap.docs.forEach(d=>{sel.innerHTML+=`<option value="${d.data().nombre}">${d.data().nombre}</option>`;});loadCtrl();}
+async function initCtrl(){
+  const snap=await getDocs(collection(db,'tipos_obligacion'));
+  const sel=document.getElementById('ctrl-tipo');
+  sel.innerHTML='<option value="">Todos</option>';
+  snap.docs.forEach(d=>{sel.innerHTML+=`<option value="${d.data().nombre}">${d.data().nombre}</option>`;});
+  // Poner fechas por defecto: hace 6 meses hasta hoy
+  const hoy=new Date();
+  const desde=new Date(hoy.getFullYear(),hoy.getMonth()-5,1);
+  const toMonthStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('ctrl-desde').value=toMonthStr(desde);
+  document.getElementById('ctrl-hasta').value=toMonthStr(hoy);
+  loadCtrl();
+}
 window.loadCtrl=async function(){
   const tipoF=document.getElementById('ctrl-tipo').value;
   const encF=document.getElementById('ctrl-enc').value;
-  const numM=parseInt(document.getElementById('ctrl-meses').value)||6;
-  const el=document.getElementById('ctrl-table');el.innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
+  const desdeVal=document.getElementById('ctrl-desde').value;
+  const hastaVal=document.getElementById('ctrl-hasta').value;
+  const el=document.getElementById('ctrl-table');
+  el.innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
+  if(!desdeVal||!hastaVal){el.innerHTML=`<div class="empty"><div class="empty-title">Seleccioná un rango de fechas</div></div>`;return;}
   try{
-    const hoy=new Date();const periodos=[];
-    for(let i=-(numM-1);i<=0;i++){const d=new Date(hoy.getFullYear(),hoy.getMonth()+i,1);periodos.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
+    const [dy,dm]=desdeVal.split('-').map(Number);
+    const [hy,hm]=hastaVal.split('-').map(Number);
+    const periodos=[];
+    let cy=dy,cm2=dm;
+    while(cy<hy||(cy===hy&&cm2<=hm)){
+      periodos.push(`${cy}-${String(cm2).padStart(2,'0')}`);
+      cm2++;if(cm2>12){cm2=1;cy++;}
+      if(periodos.length>24)break;
+    }
     const perL=p=>{const[y,m]=p.split('-');return `${MN[parseInt(m)-1]} ${y.slice(2)}`;};
     let pendSnap;
     if(tipoF)pendSnap=await getDocs(query(collection(db,'pendientes'),where('tipo','==',tipoF)));
@@ -882,48 +920,41 @@ window.loadCtrl=async function(){
     const data={};
     pendSnap.docs.forEach(d=>{
       const p=d.data();if(p.manual)return;if(!p.periodo||!p.clienteId)return;if(!periodos.includes(p.periodo))return;
-      // Filtro por encargado del cliente
       if(encF&&clis[p.clienteId]?.encargado!==encF)return;
       if(!data[p.clienteId])data[p.clienteId]={};
       if(!data[p.clienteId][p.periodo])data[p.clienteId][p.periodo]=[];
       data[p.clienteId][p.periodo].push({estado:p.estado,realizadoPor:p.realizadoPor,diasTardio:p.diasTardio||0});
     });
     const clienteIds=Object.keys(data).sort((a,b)=>(clis[a]?.nombre||'').localeCompare(clis[b]?.nombre||''));
-    if(!clienteIds.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin datos</div><div>Agrega obligaciones a tus clientes primero</div></div>`;return;}
+    if(!clienteIds.length){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin datos para este rango</div><div>Agrega obligaciones a tus clientes primero</div></div>`;return;}
     let html=`<table class="ctrl-table"><thead><tr><th>Cliente</th><th>Encargado</th>`;
     periodos.forEach(p=>{html+=`<th style="text-align:center">${perL(p)}</th>`;});
     html+=`</tr></thead><tbody>`;
     for(const cid of clienteIds){
       const enc=clis[cid]?.encargado||'—';
       html+=`<tr><td style="font-weight:600;white-space:nowrap;font-size:12.5px">${clis[cid]?.nombre||'—'}</td><td><span style="font-size:11px;font-weight:600;color:${encColor(enc)}">${enc}</span></td>`;
+      const hoy2=new Date();
       for(const per of periodos){
         const items=data[cid]?.[per];
-        if(!items?.length){html+=`<td style="text-align:center"><span class="cc-na">—</span></td>`;continue;}
+        if(!items?.length){
+          const [py,pm]=per.split('-').map(Number);
+          const esFuturo=py>hoy2.getFullYear()||(py===hoy2.getFullYear()&&pm>hoy2.getMonth()+1);
+          html+=esFuturo?`<td style="text-align:center"><span class="cc-na">—</span></td>`:`<td style="text-align:center"><span class="cc-na">—</span></td>`;
+          continue;
+        }
         const done=items.find(i=>i.estado==='completado');const pend=items.find(i=>i.estado==='pendiente');
-        const hoy2=new Date();const[y,m]=per.split('-');const esActual=parseInt(y)===hoy2.getFullYear()&&parseInt(m)-1===hoy2.getMonth();
+        const [py,pm]=per.split('-').map(Number);
+        const esActual=py===hoy2.getFullYear()&&pm===hoy2.getMonth()+1;
+        const esFuturo=py>hoy2.getFullYear()||(py===hoy2.getFullYear()&&pm>hoy2.getMonth()+1);
         if(done){const tard=done.diasTardio>0?` (${done.diasTardio}d)`:'';html+=`<td style="text-align:center"><span class="cc-done">✓ ${done.realizadoPor||'—'}${tard}</span></td>`;}
-        else if(pend){html+=esActual?`<td style="text-align:center"><span class="cc-pend">⏳ Pend.</span></td>`:`<td style="text-align:center"><span class="cc-over">✗ Sin pres.</span></td>`;}
+        else if(pend){html+=esActual||esFuturo?`<td style="text-align:center"><span class="cc-pend">⏳ Pend.</span></td>`:`<td style="text-align:center"><span class="cc-over">✗ Sin pres.</span></td>`;}
         else{html+=`<td style="text-align:center"><span class="cc-na">—</span></td>`;}
       }
       html+=`</tr>`;
     }
     html+=`</tbody></table>`;el.innerHTML=html;
   }catch(e){console.error(e);toast('Error','err');}
-};
-
-// ── CONFIG ──
-async function loadCfg(){
-  try{
-    const snap=await getDocs(collection(db,'tipos_obligacion'));const el=document.getElementById('cfg-list');
-    if(!snap.size){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos</div></div>`;return;}
-    const fl={mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
-    let h='';snap.docs.forEach(d=>{const t=d.data();h+=`<div class="cfg-row"><div class="cfg-name">${t.nombre}<br><span style="font-size:11px;color:var(--muted)">${t.descripcion||''}</span></div><span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span><span style="font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:55px;text-align:right">Día ${t.dia||'—'}</span><button class="btn btn-ghost btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editTO('${d.id}')">✏️</button></div>`;});
-    el.innerHTML=h;
-  }catch(e){console.error(e);}
-}
-window.openMTO=function(){editTOId=null;document.getElementById('m-to-title').textContent='Nuevo tipo';['mto-nombre','mto-desc'].forEach(i=>document.getElementById(i).value='');document.getElementById('mto-freq').value='mensual';document.getElementById('mto-dia').value='15';om('m-to');};
-window.editTO=async function(id){editTOId=id;const d=await getDoc(doc(db,'tipos_obligacion',id));const t=d.data();document.getElementById('m-to-title').textContent='Editar tipo';document.getElementById('mto-nombre').value=t.nombre||'';document.getElementById('mto-desc').value=t.descripcion||'';document.getElementById('mto-freq').value=t.frecuencia||'mensual';document.getElementById('mto-dia').value=t.dia||15;om('m-to');};
-window.saveTO=async function(){const nombre=document.getElementById('mto-nombre').value.trim();if(!nombre){toast('El nombre es requerido','err');return;}const data={nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};try{if(editTOId){await updateDoc(doc(db,'tipos_obligacion',editTOId),data);toast('Tipo actualizado','ok');}else{await addDoc(collection(db,'tipos_obligacion'),{...data,creadoPor:CU.uid});toast('Tipo creado','ok');}cm('m-to');loadCfg();}catch(e){toast('Error','err');}};
+}};
 
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Tu navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
 </script>
