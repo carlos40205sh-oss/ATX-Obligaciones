@@ -4,883 +4,399 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0f1117">
-<meta name="description" content="ATX — Control de obligaciones tributarias">
 <title>ATX</title>
 <link rel="manifest" href="manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════
-   TOKENS
-═══════════════════════════════════════ */
-:root {
-  --bg:         #0f1117;
-  --surface:    #181c27;
-  --surface2:   #1e2333;
-  --surface3:   #242840;
-  --border:     #2a3045;
-  --border2:    #353d58;
-  --text:       #e8ecf4;
-  --text2:      #a8b4d0;
-  --muted:      #6b7799;
-  --accent:     #4f7cff;
-  --accent-dim: rgba(79,124,255,0.12);
-  --red:        #ff4f6a;
-  --red-dim:    rgba(255,79,106,0.12);
-  --yellow:     #ffb930;
-  --yellow-dim: rgba(255,185,48,0.12);
-  --green:      #2ecc8a;
-  --green-dim:  rgba(46,204,138,0.12);
-  --purple:     #a855f7;
-  --radius:     10px;
-  --radius-lg:  14px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--border:#2a3045;--border2:#353d58;
+  --text:#e8ecf4;--text2:#a8b4d0;--muted:#6b7799;
+  --accent:#4f7cff;--accent-dim:rgba(79,124,255,0.12);
+  --red:#ff4f6a;--red-dim:rgba(255,79,106,0.12);
+  --yellow:#ffb930;--yellow-dim:rgba(255,185,48,0.12);
+  --green:#2ecc8a;--green-dim:rgba(46,204,138,0.12);
+  --purple:#a855f7;--r:10px;--rl:14px;
 }
+html,body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+input,textarea,select,button{font-family:inherit}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 14px; }
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-input, textarea, select, button { font-family: inherit; }
-a { text-decoration: none; color: inherit; }
+/* ── LOADING ── */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9999}
+#loading .logo{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--accent);letter-spacing:4px}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ═══════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+/* ── PAGES ── */
+.page{display:none;min-height:100vh}
 
-/* ═══════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════ */
-.mono { font-family: 'JetBrains Mono', monospace; }
-.muted { color: var(--muted); }
-.hidden { display: none !important; }
+/* ── LOGIN ── */
+#pg-login{align-items:center;justify-content:center;background:var(--bg)}
+.login-box{width:380px;max-width:92vw;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:36px 32px}
+.login-logo{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:4px}
+.login-tag{text-align:center;font-size:12.5px;color:var(--muted);margin-bottom:26px}
+.err-box{background:var(--red-dim);border:1px solid var(--red);color:var(--red);border-radius:var(--r);padding:10px 13px;font-size:12.5px;margin-bottom:12px;display:none}
 
-.flex { display: flex; }
-.flex-col { display: flex; flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-4 { gap: 4px; }
-.gap-8 { gap: 8px; }
-.gap-12 { gap: 12px; }
-.gap-16 { gap: 16px; }
+/* ── APP SHELL ── */
+#pg-app{flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-shrink:0}
+.tlogo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;color:var(--accent);letter-spacing:2px}
+.tright{display:flex;align-items:center;gap:10px}
+.tuser{font-size:12.5px;color:var(--muted)}
+.tavatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0}
+.nbtn{width:34px;height:34px;border-radius:var(--r);background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;position:relative}
+.ndot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--surface);display:none}
 
-/* ═══════════════════════════════════════
-   BUTTONS
-═══════════════════════════════════════ */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 16px; border-radius: var(--radius);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  border: none; transition: opacity 0.15s, transform 0.1s;
-  white-space: nowrap;
-}
-.btn:hover { opacity: 0.87; }
-.btn:active { transform: scale(0.97); }
-.btn-primary   { background: var(--accent); color: white; }
-.btn-success   { background: var(--green); color: var(--bg); }
-.btn-ghost     { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-.btn-danger    { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-dim); }
-.btn-sm        { padding: 6px 12px; font-size: 12px; }
-.btn-icon      { padding: 8px; border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); cursor: pointer; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; }
+.shell{display:flex;flex:1}
+.sidebar{width:224px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.slabel{font-size:10px;font-weight:600;letter-spacing:1.3px;color:var(--muted);text-transform:uppercase;padding:0 18px;margin:14px 0 4px}
+.slabel:first-child{margin-top:0}
+.nitem{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .12s;user-select:none}
+.nitem:hover{color:var(--text2);background:var(--surface2)}
+.nitem.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-dim)}
+.nicon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nbadge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 6px;border-radius:20px;background:var(--red);color:white;display:none}
 
-/* ═══════════════════════════════════════
-   BADGES & PILLS
-═══════════════════════════════════════ */
-.badge {
-  display: inline-flex; align-items: center;
-  padding: 3px 9px; border-radius: 20px;
-  font-size: 11.5px; font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-}
-.badge-red    { background: var(--red-dim);    color: var(--red); }
-.badge-yellow { background: var(--yellow-dim); color: var(--yellow); }
-.badge-green  { background: var(--green-dim);  color: var(--green); }
-.badge-gray   { background: rgba(107,119,153,0.12); color: var(--muted); }
-.badge-blue   { background: var(--accent-dim); color: var(--accent); }
+.main{flex:1;padding:28px 32px;overflow-y:auto}
 
-.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
-.dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
-.dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-.dot-green  { background: var(--green); }
-.dot-gray   { background: var(--muted); }
+/* ── VIEWS ── */
+.view{display:none}.view.show{display:block}
 
-/* ═══════════════════════════════════════
-   FORM ELEMENTS
-═══════════════════════════════════════ */
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.form-label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
-.form-input {
-  width: 100%; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 10px 13px; color: var(--text);
-  font-size: 13.5px; outline: none; transition: border-color 0.15s;
-}
-.form-input:focus { border-color: var(--accent); }
-.form-input::placeholder { color: var(--muted); }
-select.form-input { cursor: pointer; }
-select.form-input option { background: var(--surface2); }
-textarea.form-input { resize: vertical; min-height: 70px; }
+/* ── CARDS / COMMON ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:20px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn:hover{opacity:.87}.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:white}
+.btn-success{background:var(--green);color:var(--bg)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.flabel{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.finput{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 13px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .15s}
+.finput:focus{border-color:var(--accent)}
+.finput::placeholder{color:var(--muted)}
+select.finput{cursor:pointer}
+select.finput option{background:var(--surface2)}
+textarea.finput{resize:vertical;min-height:70px}
 
-/* ═══════════════════════════════════════
-   CARDS
-═══════════════════════════════════════ */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-}
-.card-sm { padding: 14px 18px; }
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.sc-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.sc-val{font-size:30px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1.5px}
+.sc-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+.sc-red .sc-val{color:var(--red)}.sc-yellow .sc-val{color:var(--yellow)}.sc-green .sc-val{color:var(--green)}.sc-blue .sc-val{color:var(--accent)}
 
-/* ═══════════════════════════════════════
-   PAGES SYSTEM
-═══════════════════════════════════════ */
-.page { display: none; }
-.page.active { display: flex; flex-direction: column; min-height: 100vh; }
+/* ── TABLE ── */
+.tbl{overflow:hidden}
+.tbl-head,.tbl-row{display:grid;grid-template-columns:22px 1fr 150px 120px 110px 90px;gap:12px;padding:11px 18px;align-items:center;font-size:13px}
+.tbl-head{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.tbl-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:var(--surface2)}
 
-/* ═══════════════════════════════════════
-   TOPBAR
-═══════════════════════════════════════ */
-.topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; height: 56px;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  position: sticky; top: 0; z-index: 100; flex-shrink: 0;
-}
-.topbar-logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600; font-size: 16px; color: var(--accent);
-  letter-spacing: 2px;
-}
-.topbar-right { display: flex; align-items: center; gap: 10px; }
-.topbar-user { font-size: 12.5px; color: var(--muted); }
-.user-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--purple));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-  flex-shrink: 0;
-}
-.notif-btn {
-  width: 34px; height: 34px; border-radius: var(--radius);
-  background: var(--surface2); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 15px; position: relative;
-}
-.notif-dot {
-  position: absolute; top: 5px; right: 5px;
-  width: 7px; height: 7px; background: var(--red);
-  border-radius: 50%; border: 1.5px solid var(--surface);
-}
+/* ── CLIENTS ── */
+.cli-row{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;transition:border-color .15s,background .12s;border-radius:var(--rl);margin-bottom:8px}
+.cli-row:hover{background:var(--surface2);border-color:var(--border2)}
+.cli-av{width:40px;height:40px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--accent-dim),rgba(168,85,247,.15));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.cli-name{font-weight:600;font-size:14px;margin-bottom:2px}
+.cli-meta{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
 
-/* ═══════════════════════════════════════
-   LAYOUT (sidebar + main)
-═══════════════════════════════════════ */
-.app-layout { display: flex; flex: 1; }
+/* ── PENDING CARDS ── */
+.pc{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--rl);background:var(--surface);border:1px solid var(--border);border-left-width:3px;margin-bottom:9px;transition:opacity .4s,background .15s;position:relative;overflow:hidden}
+.pc:hover{background:var(--surface2)}
+.pc.urgent{border-left-color:var(--red)}.pc.warning{border-left-color:var(--yellow)}.pc.ok{border-left-color:var(--green)}
+.pc.fading{opacity:.35}
+.chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;flex-shrink:0;transition:all .18s}
+.chk:hover{border-color:var(--green);background:var(--green-dim);color:var(--green)}
+.chk.checked{border-color:var(--green);background:var(--green);color:white}
+.pc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.pc-date{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
 
-.sidebar {
-  width: 224px; flex-shrink: 0;
-  background: var(--surface); border-right: 1px solid var(--border);
-  padding: 16px 0; display: flex; flex-direction: column;
-  position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto;
-}
-.sidebar-section-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 1.3px;
-  color: var(--muted); text-transform: uppercase;
-  padding: 0 18px; margin: 14px 0 4px;
-}
-.sidebar-section-label:first-child { margin-top: 0; }
-.nav-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 9px 18px; font-size: 13.5px; font-weight: 500;
-  color: var(--muted); cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: all 0.12s; user-select: none;
-}
-.nav-item:hover { color: var(--text2); background: var(--surface2); }
-.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
-.nav-item .nav-badge { margin-left: auto; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 20px; background: var(--red); color: white; }
-.nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.b-red{background:var(--red-dim);color:var(--red)}.b-yellow{background:var(--yellow-dim);color:var(--yellow)}.b-green{background:var(--green-dim);color:var(--green)}.b-gray{background:rgba(107,119,153,.12);color:var(--muted)}.b-blue{background:var(--accent-dim);color:var(--accent)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.d-red{background:var(--red);box-shadow:0 0 6px var(--red)}.d-yellow{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}.d-green{background:var(--green)}.d-gray{background:var(--muted)}
 
-.main-content { flex: 1; padding: 28px 32px; overflow-y: auto; max-width: 1100px; }
+/* ── HISTORIAL ── */
+.hi{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.hi:last-child{border-bottom:none}
+.hd{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.ht{font-size:13px;font-weight:500;margin-bottom:2px}
+.hm{font-size:11.5px;color:var(--muted)}
+.hdate{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-shrink:0;padding-top:2px}
+.htag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:6px}
+.htag-g{background:var(--green-dim);color:var(--green)}.htag-r{background:var(--red-dim);color:var(--red)}
 
-/* ═══════════════════════════════════════
-   SECTION HEADER
-═══════════════════════════════════════ */
-.section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
-.section-title-lg { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
-.section-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-.section-label { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; margin-top: 22px; }
-.section-label:first-child { margin-top: 0; }
+/* ── BREADCRUMB ── */
+.bc{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
+.bcl{color:var(--accent);cursor:pointer}.bcl:hover{text-decoration:underline}
 
-/* ═══════════════════════════════════════
-   STAT CARDS (dashboard)
-═══════════════════════════════════════ */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
-.stat-card { padding: 16px 20px; }
-.stat-card-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
-.stat-card-val { font-size: 30px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: -1.5px; }
-.stat-card-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
-.stat-red    .stat-card-val { color: var(--red); }
-.stat-yellow .stat-card-val { color: var(--yellow); }
-.stat-green  .stat-card-val { color: var(--green); }
-.stat-blue   .stat-card-val { color: var(--accent); }
+/* ── CLIENT DETAIL ── */
+.cd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
+.cd-av{width:48px;height:48px;border-radius:11px;background:linear-gradient(135deg,var(--accent-dim),rgba(168,85,247,.2));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:var(--accent);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.cd-name{font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:3px}
+.cd-meta{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.ms-label{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.ms-val{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.ms-red .ms-val{color:var(--red)}.ms-yellow .ms-val{color:var(--yellow)}.ms-green .ms-val{color:var(--green)}.ms-blue .ms-val{color:var(--accent)}
 
-/* ═══════════════════════════════════════
-   OBLIGATION ROWS (dashboard list)
-═══════════════════════════════════════ */
-.ob-table { overflow: hidden; }
-.ob-table-header {
-  display: grid; grid-template-columns: 24px 1fr 150px 120px 110px 90px;
-  gap: 12px; padding: 9px 18px;
-  font-size: 10.5px; font-weight: 600; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.6px;
-  background: var(--surface2); border-bottom: 1px solid var(--border);
-}
-.ob-row {
-  display: grid; grid-template-columns: 24px 1fr 150px 120px 110px 90px;
-  gap: 12px; padding: 12px 18px; align-items: center;
-  border-bottom: 1px solid var(--border); cursor: pointer;
-  transition: background 0.1s; font-size: 13px;
-}
-.ob-row:last-child { border-bottom: none; }
-.ob-row:hover { background: var(--surface2); }
-.ob-name { font-weight: 500; }
-.ob-client-name { font-size: 12px; color: var(--muted); }
+/* ── SECTION LABELS ── */
+.sec-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;gap:12px}
+.sec-title{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.sec-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.sec-lbl{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;margin-top:22px}
+.sec-lbl:first-child{margin-top:0}
+.ob-pill{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--accent-dim);color:var(--accent);margin-right:4px}
 
-/* ═══════════════════════════════════════
-   CLIENT LIST
-═══════════════════════════════════════ */
-.clients-list { display: flex; flex-direction: column; gap: 8px; }
-.client-row {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px; cursor: pointer;
-  transition: border-color 0.15s, background 0.12s;
-  border-radius: var(--radius-lg);
-}
-.client-row:hover { background: var(--surface2); border-color: var(--border2); }
-.client-row-avatar {
-  width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent-dim), rgba(168,85,247,0.15));
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 13px; color: var(--accent);
-  font-family: 'JetBrains Mono', monospace;
-}
-.client-row-info { flex: 1; }
-.client-row-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-.client-row-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-.client-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-.client-ob-pills { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-.ob-pill { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); }
+/* ── CONFIG ROWS ── */
+.cfg-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);font-size:13px}
+.cfg-row:last-child{border-bottom:none}
+.cfg-name{flex:1;font-weight:500}
+.cfg-freq{font-size:11.5px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
 
-/* ═══════════════════════════════════════
-   PENDING CARDS (client detail)
-═══════════════════════════════════════ */
-.pending-cards { display: flex; flex-direction: column; gap: 9px; margin-bottom: 24px; }
+/* ── MODAL ── */
+.mbk{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s}
+.mbk.show{opacity:1;pointer-events:all}
+.mbox{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px;width:440px;max-width:92vw;max-height:90vh;overflow-y:auto;transform:scale(.96) translateY(8px);transition:transform .2s}
+.mbk.show .mbox{transform:scale(1) translateY(0)}
+.mtitle{font-size:16px;font-weight:700;margin-bottom:5px}
+.msub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.mfoot{display:flex;gap:10px;margin-top:18px}
+.mfoot .btn{flex:1;justify-content:center;padding:11px}
 
-.pending-card {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; border-radius: var(--radius-lg);
-  background: var(--surface); border: 1px solid var(--border);
-  border-left-width: 3px; transition: opacity 0.4s, background 0.15s;
-  position: relative; overflow: hidden;
-}
-.pending-card:hover { background: var(--surface2); }
-.pending-card.urgent  { border-left-color: var(--red); }
-.pending-card.warning { border-left-color: var(--yellow); }
-.pending-card.ok      { border-left-color: var(--green); }
-.pending-card.fading  { opacity: 0.35; }
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;padding:11px 20px;border-radius:10px;opacity:0;transition:all .3s;z-index:900;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:700}
+.toast.err{background:var(--red);color:white;border-color:var(--red)}
 
-.check-circle {
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 2px solid var(--border2); background: transparent;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; color: transparent; flex-shrink: 0;
-  transition: all 0.18s;
-}
-.check-circle:hover { border-color: var(--green); background: var(--green-dim); color: var(--green); }
-.check-circle.checked { border-color: var(--green); background: var(--green); color: white; }
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.5}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:5px}
 
-.pending-card-info { flex: 1; }
-.pending-card-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-.pending-card-title.done { text-decoration: line-through; color: var(--muted); }
-.pending-card-desc { font-size: 12px; color: var(--muted); }
-
-.pending-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-.pending-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); }
-
-/* ═══════════════════════════════════════
-   HISTORIAL TIMELINE
-═══════════════════════════════════════ */
-.hist-list { padding: 4px 0; }
-.hist-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
-.hist-item:last-child { border-bottom: none; }
-.hist-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
-.hist-content { flex: 1; }
-.hist-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-.hist-meta { font-size: 11.5px; color: var(--muted); }
-.hist-date { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; padding-top: 2px; }
-.hist-tag { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 20px; margin-left: 6px; }
-.hist-tag-green { background: var(--green-dim); color: var(--green); }
-.hist-tag-red   { background: var(--red-dim);   color: var(--red); }
-
-/* ═══════════════════════════════════════
-   BREADCRUMB
-═══════════════════════════════════════ */
-.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
-.breadcrumb-link { color: var(--accent); cursor: pointer; }
-.breadcrumb-link:hover { text-decoration: underline; }
-
-/* ═══════════════════════════════════════
-   CLIENT DETAIL HEADER
-═══════════════════════════════════════ */
-.client-detail-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 22px; gap: 12px; flex-wrap: wrap;
-}
-.client-detail-left { display: flex; align-items: center; gap: 14px; }
-.client-detail-avatar {
-  width: 48px; height: 48px; border-radius: 11px;
-  background: linear-gradient(135deg, var(--accent-dim), rgba(168,85,247,0.2));
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 15px; color: var(--accent);
-  font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
-}
-.client-detail-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 3px; }
-.client-detail-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-
-/* ═══════════════════════════════════════
-   MINI STATS
-═══════════════════════════════════════ */
-.mini-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
-.mini-stat { padding: 13px 16px; }
-.mini-stat-label { font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.mini-stat-val { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.mini-stat.red    .mini-stat-val { color: var(--red); }
-.mini-stat.yellow .mini-stat-val { color: var(--yellow); }
-.mini-stat.green  .mini-stat-val { color: var(--green); }
-.mini-stat.blue   .mini-stat-val { color: var(--accent); }
-
-/* ═══════════════════════════════════════
-   LOGIN PAGE
-═══════════════════════════════════════ */
-#page-login.active {
-  background: var(--bg);
-  align-items: center; justify-content: center;
-  min-height: 100vh;
-}
-.login-box {
-  width: 380px; max-width: 90vw;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 18px; padding: 36px 32px;
-}
-.login-logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 26px; font-weight: 600; color: var(--accent);
-  letter-spacing: 4px; text-align: center; margin-bottom: 6px;
-}
-.login-tagline { text-align: center; font-size: 12.5px; color: var(--muted); margin-bottom: 28px; }
-.login-error { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: var(--radius); padding: 10px 13px; font-size: 12.5px; margin-bottom: 14px; }
-
-/* ═══════════════════════════════════════
-   MODAL
-═══════════════════════════════════════ */
-.modal-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
-  backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
-  z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-}
-.modal-backdrop.show { opacity: 1; pointer-events: all; }
-.modal {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 16px; padding: 28px; width: 440px; max-width: 92vw;
-  max-height: 90vh; overflow-y: auto;
-  transform: scale(0.96) translateY(8px); transition: transform 0.2s;
-}
-.modal-backdrop.show .modal { transform: scale(1) translateY(0); }
-.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
-.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
-.modal-footer { display: flex; gap: 10px; margin-top: 18px; }
-.modal-footer .btn { flex: 1; justify-content: center; padding: 11px; }
-
-/* ═══════════════════════════════════════
-   TOAST
-═══════════════════════════════════════ */
-.toast {
-  position: fixed; bottom: 28px; left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--surface2); border: 1px solid var(--border2);
-  color: var(--text); font-size: 13px; font-weight: 500;
-  padding: 11px 20px; border-radius: 10px;
-  opacity: 0; transition: all 0.3s; z-index: 900;
-  white-space: nowrap; pointer-events: none;
-  display: flex; align-items: center; gap: 8px;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast.success { background: var(--green); color: var(--bg); border-color: var(--green); font-weight: 700; }
-.toast.error   { background: var(--red);   color: white;     border-color: var(--red); }
-
-/* ═══════════════════════════════════════
-   EMPTY STATE
-═══════════════════════════════════════ */
-.empty-state {
-  text-align: center; padding: 48px 20px;
-  color: var(--muted);
-}
-.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
-.empty-title { font-size: 15px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
-.empty-desc { font-size: 13px; }
-
-/* ═══════════════════════════════════════
-   LOADING
-═══════════════════════════════════════ */
-.spinner {
-  width: 20px; height: 20px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.loading-screen {
-  position: fixed; inset: 0; background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: 16px; z-index: 999;
-}
-.loading-logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 28px; font-weight: 600; color: var(--accent); letter-spacing: 4px;
-}
-
-/* ═══════════════════════════════════════
-   CONFIG PAGE - obligation config rows
-═══════════════════════════════════════ */
-.config-ob-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 18px; border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.config-ob-row:last-child { border-bottom: none; }
-.config-ob-name { flex: 1; font-weight: 500; }
-.config-ob-freq { font-size: 11.5px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
-.config-ob-date { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 80px; text-align: right; }
-
-/* ═══════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════ */
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .main-content { padding: 16px; }
-  .stats-grid { grid-template-columns: repeat(2,1fr); }
-  .mini-stats { grid-template-columns: repeat(2,1fr); }
-  .ob-table-header { display: none; }
-  .ob-row { grid-template-columns: 24px 1fr auto; }
-  .ob-row > *:nth-child(3), .ob-row > *:nth-child(4) { display: none; }
-}
+@media(max-width:768px){.sidebar{display:none}.main{padding:16px}.stats-grid{grid-template-columns:repeat(2,1fr)}.mini-stats{grid-template-columns:repeat(2,1fr)}.tbl-head{display:none}.tbl-row{grid-template-columns:22px 1fr auto}}
 </style>
 </head>
 <body>
 
-<!-- ═══ LOADING ═══ -->
-<div id="loading-screen" style="z-index:9999;position:fixed;inset:0;background:#0f1117;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
-  <div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:600;color:#4f7cff;letter-spacing:4px;">ATX</div>
+<!-- LOADING -->
+<div id="loading">
+  <div class="logo">ATX</div>
   <div class="spinner"></div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE: LOGIN
-═══════════════════════════════════════ -->
-<div class="page" id="page-login" style="display:none">
+<!-- LOGIN -->
+<div class="page" id="pg-login">
   <div class="login-box">
     <div class="login-logo">ATX</div>
-    <div class="login-tagline">Control de obligaciones tributarias · CR</div>
-
-    <div class="login-error hidden" id="login-error"></div>
-
-    <div class="form-group">
-      <label class="form-label">Correo electrónico</label>
-      <input type="email" class="form-input" id="login-email" placeholder="tu@correo.com" autocomplete="email">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Contraseña</label>
-      <input type="password" class="form-input" id="login-pass" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <button class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:14px; margin-top:4px;" id="login-btn" onclick="doLogin()">
-      Ingresar
-    </button>
-
-    <div style="text-align:center; margin-top:18px; font-size:12px; color:var(--muted)">
-      ¿Olvidaste tu contraseña? <span style="color:var(--accent); cursor:pointer" onclick="doResetPass()">Recuperar</span>
-    </div>
+    <div class="login-tag">Control de obligaciones tributarias · CR</div>
+    <div class="err-box" id="login-err"></div>
+    <div class="fg"><label class="flabel">Correo electrónico</label>
+      <input type="email" class="finput" id="li-email" placeholder="tu@correo.com" autocomplete="email"></div>
+    <div class="fg"><label class="flabel">Contraseña</label>
+      <input type="password" class="finput" id="li-pass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-top:4px" id="li-btn" onclick="doLogin()">Ingresar</button>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted)">¿Olvidaste tu contraseña? <span style="color:var(--accent);cursor:pointer" onclick="doReset()">Recuperar</span></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE: APP (dashboard, clientes, etc.)
-═══════════════════════════════════════ -->
-<div class="page" id="page-app" style="display:none">
+<!-- APP -->
+<div class="page" id="pg-app">
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">ATX</div>
-    <div class="topbar-right">
-      <div class="notif-btn" onclick="showView('notificaciones')">
-        🔔
-        <div class="notif-dot" id="notif-dot"></div>
-      </div>
-      <div class="topbar-user" id="topbar-user-name"></div>
-      <div class="user-avatar" id="topbar-avatar" onclick="doLogout()">C</div>
+    <div class="tlogo">ATX</div>
+    <div class="tright">
+      <div class="nbtn" onclick="nav('notif')">🔔<div class="ndot" id="ndot"></div></div>
+      <div class="tuser" id="t-username"></div>
+      <div class="tavatar" id="t-avatar" onclick="doLogout()" title="Salir">C</div>
     </div>
   </div>
 
-  <div class="app-layout">
+  <div class="shell">
     <!-- SIDEBAR -->
     <nav class="sidebar">
-      <div class="sidebar-section-label">Principal</div>
-      <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
-        <span class="nav-icon">📊</span> Dashboard
-        <span class="nav-badge hidden" id="nav-badge-dashboard"></span>
-      </div>
-      <div class="nav-item" data-view="notificaciones" onclick="showView('notificaciones')">
-        <span class="nav-icon">🔔</span> Notificaciones
-      </div>
-
-      <div class="sidebar-section-label">Gestión</div>
-      <div class="nav-item" data-view="clientes" onclick="showView('clientes')">
-        <span class="nav-icon">🏢</span> Clientes
-      </div>
-      <div class="sidebar-section-label">Configuración</div>
-      <div class="nav-item" data-view="config" onclick="showView('config')">
-        <span class="nav-icon">⚙️</span> Obligaciones
-      </div>
-      <div class="nav-item" style="margin-top:auto" onclick="doLogout()">
-        <span class="nav-icon">🚪</span> Salir
-      </div>
+      <div class="slabel">Principal</div>
+      <div class="nitem active" id="si-dash" onclick="nav('dash')"><span class="nicon">📊</span>Dashboard<span class="nbadge" id="nb-dash"></span></div>
+      <div class="nitem" id="si-notif" onclick="nav('notif')"><span class="nicon">🔔</span>Notificaciones</div>
+      <div class="slabel">Gestión</div>
+      <div class="nitem" id="si-cli" onclick="nav('cli')"><span class="nicon">🏢</span>Clientes</div>
+      <div class="slabel">Configuración</div>
+      <div class="nitem" id="si-cfg" onclick="nav('cfg')"><span class="nicon">⚙️</span>Obligaciones</div>
+      <div class="nitem" style="margin-top:20px" onclick="doLogout()"><span class="nicon">🚪</span>Salir</div>
     </nav>
 
     <!-- MAIN -->
-    <main class="main-content">
+    <main class="main">
 
-      <!-- ════ VIEW: DASHBOARD ════ -->
-      <div id="view-dashboard">
-        <div class="section-header">
-          <div>
-            <div class="section-title-lg">Dashboard</div>
-            <div class="section-sub" id="dash-sub">Cargando...</div>
-          </div>
+      <!-- DASHBOARD -->
+      <div class="view" id="v-dash">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Dashboard</div><div class="sec-sub" id="dash-sub">Cargando...</div></div>
         </div>
-
         <div class="stats-grid">
-          <div class="card stat-card stat-red">
-            <div class="stat-card-label">Urgentes</div>
-            <div class="stat-card-val" id="stat-urgent">—</div>
-            <div class="stat-card-sub">Vencen en ≤5 días</div>
-          </div>
-          <div class="card stat-card stat-yellow">
-            <div class="stat-card-label">Este mes</div>
-            <div class="stat-card-val" id="stat-month">—</div>
-            <div class="stat-card-sub">Pendientes</div>
-          </div>
-          <div class="card stat-card stat-green">
-            <div class="stat-card-label">Completadas</div>
-            <div class="stat-card-val" id="stat-done">—</div>
-            <div class="stat-card-sub">Este mes</div>
-          </div>
-          <div class="card stat-card stat-blue">
-            <div class="stat-card-label">Clientes</div>
-            <div class="stat-card-val" id="stat-clients">—</div>
-            <div class="stat-card-sub">Activos</div>
-          </div>
+          <div class="card sc-red"><div class="sc-label">Urgentes</div><div class="sc-val" id="st-urg">—</div><div class="sc-sub">Vencen en ≤5 días</div></div>
+          <div class="card sc-yellow"><div class="sc-label">Este mes</div><div class="sc-val" id="st-mes">—</div><div class="sc-sub">Pendientes</div></div>
+          <div class="card sc-green"><div class="sc-label">Completadas</div><div class="sc-val" id="st-done">—</div><div class="sc-sub">Este mes</div></div>
+          <div class="card sc-blue"><div class="sc-label">Clientes</div><div class="sc-val" id="st-cli">—</div><div class="sc-sub">Activos</div></div>
         </div>
-
-        <div class="section-label">⚠️ Próximos vencimientos</div>
-        <div class="card ob-table" id="dash-ob-list">
-          <div class="ob-table-header">
-            <div></div>
-            <div>Obligación</div>
-            <div>Cliente</div>
-            <div>Vence</div>
-            <div>Días restantes</div>
-            <div>Estado</div>
-          </div>
-          <div style="padding:32px; text-align:center; color:var(--muted)">
-            <div class="spinner"></div>
-          </div>
+        <div class="sec-lbl">⚠️ Próximos vencimientos</div>
+        <div class="card tbl" id="dash-list">
+          <div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>
+          <div style="padding:28px;text-align:center"><div class="spinner"></div></div>
         </div>
       </div>
 
-      <!-- ════ VIEW: CLIENTES ════ -->
-      <div id="view-clientes" class="hidden">
-        <div class="section-header">
-          <div>
-            <div class="section-title-lg">Clientes</div>
-            <div class="section-sub" id="clients-sub">—</div>
-          </div>
-          <button class="btn btn-primary" onclick="openModalCliente()">＋ Nuevo cliente</button>
+      <!-- CLIENTES -->
+      <div class="view" id="v-cli">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Clientes</div><div class="sec-sub" id="cli-sub">—</div></div>
+          <button class="btn btn-primary" onclick="openMC()">＋ Nuevo cliente</button>
         </div>
-        <div class="clients-list" id="clients-list">
-          <div style="padding:32px; text-align:center; color:var(--muted)"><div class="spinner"></div></div>
-        </div>
+        <div id="cli-list"><div style="padding:28px;text-align:center"><div class="spinner"></div></div></div>
       </div>
 
-      <!-- ════ VIEW: CLIENTE DETALLE ════ -->
-      <div id="view-cliente-detalle" class="hidden">
-        <div class="breadcrumb">
-          <span class="breadcrumb-link" onclick="showView('clientes')">🏢 Clientes</span>
-          <span>›</span>
-          <span id="bc-cliente-name">—</span>
-        </div>
-
-        <div class="client-detail-header">
-          <div class="client-detail-left">
-            <div class="client-detail-avatar" id="cd-avatar">—</div>
-            <div>
-              <div class="client-detail-name" id="cd-name">—</div>
-              <div class="client-detail-meta" id="cd-meta">—</div>
-            </div>
+      <!-- CLIENTE DETALLE -->
+      <div class="view" id="v-cdet">
+        <div class="bc"><span class="bcl" onclick="nav('cli')">🏢 Clientes</span><span>›</span><span id="bc-name">—</span></div>
+        <div class="cd-header">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="cd-av" id="cd-av">—</div>
+            <div><div class="cd-name" id="cd-name">—</div><div class="cd-meta" id="cd-meta">—</div></div>
           </div>
-          <div class="flex gap-8 flex-wrap">
-            <button class="btn btn-ghost btn-sm" onclick="openModalObligacion()">＋ Obligación</button>
-            <button class="btn btn-ghost btn-sm" onclick="editarClienteActual()">✏️ Editar</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="openMO()">＋ Obligación</button>
+            <button class="btn btn-ghost btn-sm" onclick="editCli()">✏️ Editar</button>
           </div>
         </div>
-
         <div class="mini-stats">
-          <div class="card mini-stat red">
-            <div class="mini-stat-label">Urgentes</div>
-            <div class="mini-stat-val" id="cd-stat-urgent">0</div>
-          </div>
-          <div class="card mini-stat yellow">
-            <div class="mini-stat-label">Este mes</div>
-            <div class="mini-stat-val" id="cd-stat-month">0</div>
-          </div>
-          <div class="card mini-stat green">
-            <div class="mini-stat-label">Completadas</div>
-            <div class="mini-stat-val" id="cd-stat-done">0</div>
-          </div>
-          <div class="card mini-stat blue">
-            <div class="mini-stat-label">Obligaciones</div>
-            <div class="mini-stat-val" id="cd-stat-total">0</div>
-          </div>
+          <div class="card ms-red"><div class="ms-label">Urgentes</div><div class="ms-val" id="ms-urg">0</div></div>
+          <div class="card ms-yellow"><div class="ms-label">Este mes</div><div class="ms-val" id="ms-mes">0</div></div>
+          <div class="card ms-green"><div class="ms-label">Completadas</div><div class="ms-val" id="ms-done">0</div></div>
+          <div class="card ms-blue"><div class="ms-label">Obligaciones</div><div class="ms-val" id="ms-tot">0</div></div>
         </div>
-
-        <div class="section-label" id="urgent-section-label">🔴 Urgentes — vencen en menos de 5 días</div>
-        <div class="pending-cards" id="pending-urgent"></div>
-
-        <div class="section-label" id="warning-section-label">🟡 Próximas — este mes</div>
-        <div class="pending-cards" id="pending-warning"></div>
-
-        <div class="section-label">🟢 Más adelante</div>
-        <div class="pending-cards" id="pending-ok"></div>
-
-        <div class="section-label">✅ Completadas recientemente</div>
-        <div class="card" style="padding: 0 18px;">
-          <div class="hist-list" id="hist-list-cliente">
-            <div style="padding:20px; text-align:center; color:var(--muted); font-size:12.5px">Sin completadas aún</div>
-          </div>
-        </div>
+        <div class="sec-lbl">🔴 Urgentes — vencen en menos de 5 días</div>
+        <div id="p-urgent"></div>
+        <div class="sec-lbl">🟡 Próximas — este mes</div>
+        <div id="p-warning"></div>
+        <div class="sec-lbl">🟢 Más adelante</div>
+        <div id="p-ok"></div>
+        <div class="sec-lbl">✅ Completadas recientemente</div>
+        <div class="card" style="padding:0 18px"><div id="hist-list"><div style="padding:18px;text-align:center;font-size:12.5px;color:var(--muted)">Sin completadas aún</div></div></div>
       </div>
 
-      <!-- ════ VIEW: NOTIFICACIONES ════ -->
-      <div id="view-notificaciones" class="hidden">
-        <div class="section-header">
-          <div>
-            <div class="section-title-lg">Notificaciones</div>
-            <div class="section-sub">Alertas automáticas de vencimientos</div>
-          </div>
-        </div>
+      <!-- NOTIFICACIONES -->
+      <div class="view" id="v-notif">
+        <div class="sec-hdr"><div><div class="sec-title">Notificaciones</div><div class="sec-sub">Alertas automáticas de vencimientos</div></div></div>
         <div class="card">
-          <div style="padding:16px 0; border-bottom:1px solid var(--border); margin-bottom:16px;">
-            <div style="font-size:14px; font-weight:600; margin-bottom:6px;">🔔 Notificaciones push</div>
-            <div style="font-size:13px; color:var(--muted); margin-bottom:14px;">Recibí alertas automáticas cuando un vencimiento se acerca. Las notificaciones se activan por cliente según los días de aviso configurados.</div>
-            <button class="btn btn-primary btn-sm" id="btn-enable-notif" onclick="habilitarNotificaciones()">Activar notificaciones en este dispositivo</button>
-            <div style="font-size:12px; color:var(--green); margin-top:8px; display:none" id="notif-ok-msg">✓ Notificaciones activadas</div>
-          </div>
-          <div style="font-size:13px; color:var(--muted);">Las notificaciones automáticas se procesan diariamente mediante Cloud Functions. Cuando configurés una obligación con días de aviso, el sistema te enviará un push automáticamente.</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:8px">🔔 Notificaciones push</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Recibí alertas cuando un vencimiento se acerca. Se activan por cliente según los días de aviso configurados.</div>
+          <button class="btn btn-primary btn-sm" id="btn-notif" onclick="enableNotif()">Activar notificaciones en este dispositivo</button>
+          <div style="font-size:12px;color:var(--green);margin-top:8px;display:none" id="notif-ok">✓ Notificaciones activadas</div>
         </div>
       </div>
 
-      <!-- ════ VIEW: CONFIG ════ -->
-      <div id="view-config" class="hidden">
-        <div class="section-header">
-          <div>
-            <div class="section-title-lg">Tipos de Obligación</div>
-            <div class="section-sub">Plantillas de obligaciones pre-configuradas para Costa Rica</div>
-          </div>
-          <button class="btn btn-primary" onclick="openModalTipoOb()">＋ Nueva tipo</button>
+      <!-- CONFIG -->
+      <div class="view" id="v-cfg">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Tipos de Obligación</div><div class="sec-sub">Plantillas pre-configuradas para Costa Rica</div></div>
+          <button class="btn btn-primary" onclick="openMTO()">＋ Nuevo tipo</button>
         </div>
-        <div class="card ob-table" id="tipos-ob-list">
-          <div style="padding:20px; text-align:center; color:var(--muted)"><div class="spinner"></div></div>
-        </div>
+        <div class="card tbl" id="cfg-list"><div style="padding:20px;text-align:center"><div class="spinner"></div></div></div>
       </div>
 
     </main>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     MODALES
-═══════════════════════════════════════ -->
-
-<!-- Modal: Marcar como hecho -->
-<div class="modal-backdrop" id="modal-done">
-  <div class="modal">
-    <div class="modal-title">✅ Marcar como realizado</div>
-    <div class="modal-sub" id="modal-done-sub">¿Confirmar que completaste esta obligación?</div>
-    <div class="form-group">
-      <label class="form-label">Nota (opcional)</label>
-      <textarea class="form-input" id="modal-done-nota" placeholder="Ej: Presentado en ATV, confirmación #12345..."></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">¿Quién lo realizó?</label>
-      <select class="form-input" id="modal-done-quien">
-        <option value="Carlos">Carlos</option>
-        <option value="Socio">Socio</option>
-      </select>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-done')">Cancelar</button>
-      <button class="btn btn-success" onclick="confirmarDone()">✓ Confirmar</button>
+<!-- MODAL: DONE -->
+<div class="mbk" id="m-done">
+  <div class="mbox">
+    <div class="mtitle">✅ Marcar como realizado</div>
+    <div class="msub" id="m-done-sub">¿Confirmar que completaste esta obligación?</div>
+    <div class="fg"><label class="flabel">Nota (opcional)</label>
+      <textarea class="finput" id="md-nota" placeholder="Ej: Presentado en ATV, confirmación #12345..."></textarea></div>
+    <div class="fg"><label class="flabel">¿Quién lo realizó?</label>
+      <select class="finput" id="md-quien"><option>Carlos</option><option>Socio</option></select></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="cm('m-done')">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmDone()">✓ Confirmar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Nuevo / editar cliente -->
-<div class="modal-backdrop" id="modal-cliente">
-  <div class="modal">
-    <div class="modal-title" id="modal-cliente-title">Nuevo cliente</div>
-    <div class="modal-sub">Información básica del cliente</div>
-    <div class="form-group">
-      <label class="form-label">Nombre / Razón social *</label>
-      <input type="text" class="form-input" id="mc-nombre" placeholder="Empresa XYZ S.A.">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Cédula jurídica / Física</label>
-      <input type="text" class="form-input" id="mc-cedula" placeholder="3-101-123456">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Régimen tributario</label>
-      <select class="form-input" id="mc-regimen">
-        <option value="Tradicional">Tradicional</option>
-        <option value="Simplificado">Simplificado</option>
-        <option value="Exonerado">Exonerado</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Notas</label>
-      <textarea class="form-input" id="mc-notas" placeholder="Información adicional..."></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-cliente')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+<!-- MODAL: CLIENTE -->
+<div class="mbk" id="m-cli">
+  <div class="mbox">
+    <div class="mtitle" id="m-cli-title">Nuevo cliente</div>
+    <div class="msub">Información básica del cliente</div>
+    <div class="fg"><label class="flabel">Nombre / Razón social *</label>
+      <input type="text" class="finput" id="mc-nombre" placeholder="Empresa XYZ S.A."></div>
+    <div class="fg"><label class="flabel">Cédula jurídica / Física</label>
+      <input type="text" class="finput" id="mc-cedula" placeholder="3-101-123456"></div>
+    <div class="fg"><label class="flabel">Régimen tributario</label>
+      <select class="finput" id="mc-reg"><option>Tradicional</option><option>Simplificado</option><option>Exonerado</option><option>Otro</option></select></div>
+    <div class="fg"><label class="flabel">Notas</label>
+      <textarea class="finput" id="mc-notas" placeholder="Información adicional..."></textarea></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="cm('m-cli')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCli()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Agregar obligación a cliente -->
-<div class="modal-backdrop" id="modal-obligacion">
-  <div class="modal">
-    <div class="modal-title">Agregar obligación</div>
-    <div class="modal-sub" id="modal-ob-sub">Configurar obligación recurrente para este cliente</div>
-    <div class="form-group">
-      <label class="form-label">Tipo de obligación *</label>
-      <select class="form-input" id="mo-tipo" onchange="onTipoObChange()">
-        <option value="">— Seleccionar —</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Frecuencia</label>
-      <select class="form-input" id="mo-frecuencia">
-        <option value="mensual">Mensual</option>
-        <option value="trimestral">Trimestral</option>
-        <option value="semestral">Semestral</option>
-        <option value="anual">Anual</option>
-        <option value="personalizada">Personalizada</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Día de vencimiento (del mes)</label>
-      <input type="number" class="form-input" id="mo-dia" min="1" max="31" value="15">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Avisar con cuántos días de anticipación</label>
-      <input type="number" class="form-input" id="mo-aviso" min="1" max="30" value="7">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nota / referencia</label>
-      <input type="text" class="form-input" id="mo-nota" placeholder="Ej: Hacienda ATV, cuenta corriente...">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-obligacion')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarObligacion()">Guardar y generar pendientes</button>
+<!-- MODAL: OBLIGACION -->
+<div class="mbk" id="m-ob">
+  <div class="mbox">
+    <div class="mtitle">Agregar obligación</div>
+    <div class="msub" id="m-ob-sub">Configurar obligación recurrente</div>
+    <div class="fg"><label class="flabel">Tipo de obligación *</label>
+      <select class="finput" id="mo-tipo" onchange="onTipoChange()"><option value="">— Seleccionar —</option></select></div>
+    <div class="fg"><label class="flabel">Frecuencia</label>
+      <select class="finput" id="mo-freq"><option value="mensual">Mensual</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></div>
+    <div class="fg"><label class="flabel">Día de vencimiento (del mes)</label>
+      <input type="number" class="finput" id="mo-dia" min="1" max="31" value="15"></div>
+    <div class="fg"><label class="flabel">Avisar con cuántos días de anticipación</label>
+      <input type="number" class="finput" id="mo-aviso" min="1" max="30" value="7"></div>
+    <div class="fg"><label class="flabel">Nota / referencia</label>
+      <input type="text" class="finput" id="mo-nota" placeholder="Ej: Hacienda ATV..."></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="cm('m-ob')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveOb()">Guardar y generar pendientes</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Nuevo tipo de obligación -->
-<div class="modal-backdrop" id="modal-tipo-ob">
-  <div class="modal">
-    <div class="modal-title">Nuevo tipo de obligación</div>
-    <div class="modal-sub">Plantilla para usar en cualquier cliente</div>
-    <div class="form-group">
-      <label class="form-label">Nombre *</label>
-      <input type="text" class="form-input" id="mto-nombre" placeholder="Ej: Declaración municipal">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Descripción</label>
-      <input type="text" class="form-input" id="mto-desc" placeholder="Ej: Impuesto territorial trimestral">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Frecuencia por defecto</label>
-      <select class="form-input" id="mto-frecuencia">
-        <option value="mensual">Mensual</option>
-        <option value="trimestral">Trimestral</option>
-        <option value="semestral">Semestral</option>
-        <option value="anual">Anual</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Día de vencimiento por defecto</label>
-      <input type="number" class="form-input" id="mto-dia" min="1" max="31" value="15">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-tipo-ob')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarTipoOb()">Guardar</button>
+<!-- MODAL: TIPO OB -->
+<div class="mbk" id="m-to">
+  <div class="mbox">
+    <div class="mtitle">Nuevo tipo de obligación</div>
+    <div class="msub">Plantilla para usar en cualquier cliente</div>
+    <div class="fg"><label class="flabel">Nombre *</label>
+      <input type="text" class="finput" id="mto-nombre" placeholder="Ej: Declaración municipal"></div>
+    <div class="fg"><label class="flabel">Descripción</label>
+      <input type="text" class="finput" id="mto-desc" placeholder="Ej: Impuesto territorial trimestral"></div>
+    <div class="fg"><label class="flabel">Frecuencia por defecto</label>
+      <select class="finput" id="mto-freq"><option value="mensual">Mensual</option><option value="trimestral">Trimestral</option><option value="semestral">Semestral</option><option value="anual">Anual</option></select></div>
+    <div class="fg"><label class="flabel">Día de vencimiento por defecto</label>
+      <input type="number" class="finput" id="mto-dia" min="1" max="31" value="15"></div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="cm('m-to')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTO()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════
-     FIREBASE + APP JS
-═══════════════════════════════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
-  sendPasswordResetEmail
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, serverTimestamp, Timestamp, setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, query, where, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-/* ───────────────────────────────────────
-   FIREBASE CONFIG — reemplazá con tus datos
-─────────────────────────────────────── */
 const firebaseConfig = {
   apiKey:            "AIzaSyDA9t2kF4oXLzeHPpVdu1YVbB2NgOIN0_k",
   authDomain:        "atx-obligaciones.firebaseapp.com",
@@ -895,695 +411,468 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-/* ───────────────────────────────────────
-   STATE
-─────────────────────────────────────── */
-let currentUser    = null;
-let currentCliente = null;   // { id, ...data }
-let pendingDoneId  = null;   // id de pendiente a marcar
-let editClienteId  = null;   // null = nuevo, string = editar
+// ── STATE ──
+let CU = null; // current user
+let CC = null; // current client { id, ...data }
+let pendDoneId = null;
+let editCliId  = null;
 
-/* ───────────────────────────────────────
-   TIPOS DE OBLIGACIÓN PRE-CARGADOS (CR)
-─────────────────────────────────────── */
+// ── TIPOS DEFAULT ──
 const TIPOS_DEFAULT = [
-  { nombre: "D-104 IVA",           descripcion: "Declaración mensual del Impuesto al Valor Agregado", frecuencia: "mensual",    dia: 15 },
-  { nombre: "CCSS Patronal",        descripcion: "Planilla y pago de cargas sociales patronales",       frecuencia: "mensual",    dia: 15 },
-  { nombre: "INS Póliza RT",        descripcion: "Póliza de Riesgos del Trabajo — Instituto Nacional de Seguros", frecuencia: "anual", dia: 1 },
-  { nombre: "D-151 Renta",          descripcion: "Declaración anual del Impuesto sobre la Renta",       frecuencia: "anual",      dia: 15 },
-  { nombre: "D-195 Imp. Utilidades",descripcion: "Declaración de utilidades — personas jurídicas",      frecuencia: "anual",      dia: 15 },
-  { nombre: "Municipalidad",        descripcion: "Patente municipal trimestral",                         frecuencia: "trimestral", dia: 15 },
-  { nombre: "D-140 Modificación",   descripcion: "Modificación de datos en Hacienda",                   frecuencia: "personalizada", dia: 1 },
-  { nombre: "Timbre de Educación",  descripcion: "Timbre de educación y cultura — anual",                frecuencia: "anual",      dia: 31 },
+  { nombre:"D-104 IVA",            descripcion:"Declaración mensual IVA - Hacienda",          frecuencia:"mensual",     dia:15 },
+  { nombre:"CCSS Patronal",         descripcion:"Planilla y cargas sociales patronales",        frecuencia:"mensual",     dia:15 },
+  { nombre:"INS Póliza RT",         descripcion:"Póliza Riesgos del Trabajo - INS",            frecuencia:"anual",       dia:1  },
+  { nombre:"D-151 Renta",           descripcion:"Declaración anual Impuesto sobre la Renta",   frecuencia:"anual",       dia:15 },
+  { nombre:"D-195 Utilidades",      descripcion:"Declaración de utilidades personas jurídicas", frecuencia:"anual",       dia:15 },
+  { nombre:"Municipalidad",         descripcion:"Patente municipal trimestral",                 frecuencia:"trimestral",  dia:15 },
+  { nombre:"D-140 Modificación",    descripcion:"Modificación de datos en Hacienda",           frecuencia:"personalizada",dia:1 },
+  { nombre:"Timbre de Educación",   descripcion:"Timbre educación y cultura - anual",           frecuencia:"anual",       dia:31 },
 ];
 
-/* ───────────────────────────────────────
-   AUTH
-─────────────────────────────────────── */
+// ── AUTH STATE ──
 onAuthStateChanged(auth, async (user) => {
-  hideLoading();
+  hide('loading');
   if (user) {
-    currentUser = user;
+    CU = user;
     const name = user.email.split('@')[0];
-    document.getElementById('topbar-user-name').textContent = name;
-    document.getElementById('topbar-avatar').textContent    = name[0].toUpperCase();
-    showPage('page-app');
-    await seedTiposObligacion();
-    showView('dashboard');
+    document.getElementById('t-username').textContent = name;
+    document.getElementById('t-avatar').textContent   = name[0].toUpperCase();
+    showPage('pg-app');
+    await seedTipos();
+    nav('dash');
   } else {
-    currentUser = null;
-    showPage('page-login');
+    CU = null;
+    showPage('pg-login');
   }
 });
 
-window.doLogin = async () => {
-  const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const errEl = document.getElementById('login-error');
-  const btn   = document.getElementById('login-btn');
-  errEl.classList.add('hidden');
-  btn.textContent = 'Ingresando...';
-  btn.disabled = true;
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    let msg = 'Correo o contraseña incorrectos.';
-    if (e.code === 'auth/too-many-requests') msg = 'Demasiados intentos. Intentá más tarde.';
-    errEl.textContent = msg;
-    errEl.classList.remove('hidden');
-  } finally {
-    btn.textContent = 'Ingresar';
-    btn.disabled = false;
-  }
-};
+// ── PAGE / NAV HELPERS ──
+function hide(id){ document.getElementById(id).style.display='none'; }
 
-window.doLogout = async () => {
-  await signOut(auth);
-};
-
-window.doResetPass = async () => {
-  const email = document.getElementById('login-email').value.trim();
-  if (!email) { showToast('Ingresá tu correo primero', 'error'); return; }
-  await sendPasswordResetEmail(auth, email);
-  showToast('Correo de recuperación enviado', 'success');
-};
-
-// Enter en login
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
-document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pass').focus(); });
-
-/* ───────────────────────────────────────
-   HELPERS
-─────────────────────────────────────── */
-function hideLoading() {
-  document.getElementById('loading-screen').style.display = 'none';
-}
 function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
-    p.style.display = 'none';
+  ['pg-login','pg-app'].forEach(p => {
+    const el = document.getElementById(p);
+    el.style.display = 'none';
+    el.classList.remove('active');
   });
   const el = document.getElementById(id);
   el.classList.add('active');
-  el.style.display = 'flex';
-  if (id === 'page-app') el.style.flexDirection = 'column';
-  else { el.style.flexDirection = ''; el.style.alignItems = 'center'; el.style.justifyContent = 'center'; el.style.minHeight = '100vh'; }
+  if (id === 'pg-login') {
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+  } else {
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+  }
 }
-function showToast(msg, type='') {
+
+window.nav = function(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('show'));
+  document.querySelectorAll('.nitem').forEach(n => n.classList.remove('active'));
+  const vmap = { dash:'v-dash', cli:'v-cli', cdet:'v-cdet', notif:'v-notif', cfg:'v-cfg' };
+  const smap = { dash:'si-dash', cli:'si-cli', notif:'si-notif', cfg:'si-cfg' };
+  const vel = document.getElementById(vmap[view]);
+  if (vel) vel.classList.add('show');
+  const sel = document.getElementById(smap[view]);
+  if (sel) sel.classList.add('active');
+  if (view === 'dash') loadDash();
+  if (view === 'cli')  loadCli();
+  if (view === 'cfg')  loadCfg();
+};
+
+// ── TOAST ──
+function toast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' '+type : '');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
-}
-function openModal(id) {
-  document.getElementById(id).classList.add('show');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
-}
-window.closeModal = closeModal;
-
-// Close on backdrop click
-document.querySelectorAll('.modal-backdrop').forEach(b => {
-  b.addEventListener('click', e => { if(e.target===b) b.classList.remove('show'); });
-});
-
-function initials(name) {
-  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3200);
 }
 
-function formatDate(ts) {
-  if (!ts) return '—';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' });
-}
+// ── MODAL ──
+function om(id){ document.getElementById(id).classList.add('show'); }
+window.cm = function(id){ document.getElementById(id).classList.remove('show'); };
+document.querySelectorAll('.mbk').forEach(b => b.addEventListener('click', e => { if(e.target===b) b.classList.remove('show'); }));
 
-function diasRestantes(ts) {
-  if (!ts) return 999;
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  return Math.ceil((d - hoy) / 86400000);
-}
+// ── UTILS ──
+function initials(n){ return (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function fmtDate(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'}); }
+function daysLeft(ts){ if(!ts) return 999; const d=ts.toDate?ts.toDate():new Date(ts); const h=new Date(); h.setHours(0,0,0,0); return Math.ceil((d-h)/86400000); }
+function urgCls(d){ return d<=5?'urgent':d<=15?'warning':'ok'; }
+function dotCls(d){ return d<=5?'d-red':d<=15?'d-yellow':'d-green'; }
+function badgeCls(d){ return d<=5?'b-red':d<=15?'b-yellow':'b-green'; }
+function daysLbl(d){ if(d<0) return Math.abs(d)+'d vencido'; if(d===0) return 'Hoy'; return d+' días'; }
 
-function urgencyClass(dias) {
-  if (dias <= 5)  return 'urgent';
-  if (dias <= 15) return 'warning';
-  return 'ok';
-}
-function dotClass(dias) {
-  if (dias <= 5)  return 'dot-red';
-  if (dias <= 15) return 'dot-yellow';
-  return 'dot-green';
-}
-function badgeClass(dias) {
-  if (dias <= 5)  return 'badge-red';
-  if (dias <= 15) return 'badge-yellow';
-  return 'badge-green';
-}
-function diasLabel(dias) {
-  if (dias < 0)  return `${Math.abs(dias)}d vencido`;
-  if (dias === 0) return 'Hoy';
-  return `${dias} días`;
-}
-
-/* ───────────────────────────────────────
-   NAVIGATION
-─────────────────────────────────────── */
-window.showView = function(view) {
-  // Hide all views
-  document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
-  // Nav active state
-  document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('active', n.dataset.view === view);
-  });
-
-  const el = document.getElementById('view-' + view);
-  if (el) el.classList.remove('hidden');
-
-  if (view === 'dashboard')        loadDashboard();
-  if (view === 'clientes')         loadClientes();
-  if (view === 'config')           loadTiposOb();
-};
-
-/* ───────────────────────────────────────
-   SEED: tipos de obligación predeterminados
-─────────────────────────────────────── */
-async function seedTiposObligacion() {
-  const snap = await getDocs(collection(db, 'tipos_obligacion'));
-  if (snap.empty) {
-    for (const t of TIPOS_DEFAULT) {
-      await addDoc(collection(db, 'tipos_obligacion'), { ...t, activo: true, creadoPor: currentUser.uid });
+// ── SEED TIPOS ──
+async function seedTipos() {
+  try {
+    const snap = await getDocs(collection(db,'tipos_obligacion'));
+    if (snap.empty) {
+      for (const t of TIPOS_DEFAULT) {
+        await addDoc(collection(db,'tipos_obligacion'), {...t, activo:true, creadoPor:CU.uid});
+      }
     }
-  }
+  } catch(e){ console.error('seed error',e); }
 }
 
-/* ───────────────────────────────────────
-   GENERADOR DE PENDIENTES
-   Crea pendientes automáticos para una obligación
-─────────────────────────────────────── */
-async function generarPendientes(clienteId, obId, obData) {
-  const hoy    = new Date(); hoy.setHours(0,0,0,0);
-  const { frecuencia, dia, aviso } = obData;
-
-  // Generar los próximos N períodos
+// ── GENERAR PENDIENTES ──
+async function genPendientes(clienteId, obId, obData) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const { frecuencia, dia, aviso, tipo, nota } = obData;
+  const meses = frecuencia==='mensual'?3:frecuencia==='trimestral'?9:frecuencia==='semestral'?12:14;
   const periodos = [];
-  const mesesAdelante = frecuencia === 'mensual' ? 3
-    : frecuencia === 'trimestral' ? 6
-    : frecuencia === 'semestral'  ? 12
-    : 13; // anual
-
-  let base = new Date(hoy);
-  for (let i = 0; i < mesesAdelante; i++) {
-    const fecha = new Date(base.getFullYear(), base.getMonth() + i, dia || 15);
-    if (fecha >= hoy) periodos.push(fecha);
-    if (frecuencia === 'trimestral' && periodos.length >= 2) break;
-    if (frecuencia === 'semestral'  && periodos.length >= 2) break;
-    if (frecuencia === 'anual'      && periodos.length >= 1) break;
+  for (let i=0; i<meses; i++) {
+    const f = new Date(hoy.getFullYear(), hoy.getMonth()+i, dia||15);
+    if (f >= hoy) periodos.push(f);
+    if (frecuencia==='trimestral' && periodos.length>=3) break;
+    if (frecuencia==='semestral'  && periodos.length>=2) break;
+    if (frecuencia==='anual'      && periodos.length>=1) break;
   }
-
-  // Para cada período, verificar si ya existe un pendiente
   for (const fecha of periodos) {
-    const periodoStr = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
-    const q = query(
-      collection(db, 'pendientes'),
-      where('clienteId',    '==', clienteId),
-      where('obligacionId', '==', obId),
-      where('periodo',      '==', periodoStr)
-    );
+    const periodo = `${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
+    const q = query(collection(db,'pendientes'), where('clienteId','==',clienteId), where('obligacionId','==',obId), where('periodo','==',periodo));
     const snap = await getDocs(q);
     if (snap.empty) {
-      await addDoc(collection(db, 'pendientes'), {
-        clienteId,
-        obligacionId: obId,
-        tipo:         obData.tipo,
-        periodo:      periodoStr,
-        fechaVence:   Timestamp.fromDate(fecha),
-        diasAviso:    aviso || 7,
-        estado:       'pendiente',
-        nota:         '',
-        realizadoPor: '',
-        creadoEn:     serverTimestamp(),
-        auto:         true
+      await addDoc(collection(db,'pendientes'), {
+        clienteId, obligacionId:obId, tipo, periodo,
+        fechaVence: Timestamp.fromDate(fecha),
+        diasAviso: aviso||7, estado:'pendiente',
+        nota: nota||'', realizadoPor:'',
+        creadoEn: serverTimestamp(), auto:true
       });
     }
   }
 }
 
-/* ───────────────────────────────────────
-   DASHBOARD
-─────────────────────────────────────── */
-async function loadDashboard() {
+// ── LOGIN ──
+window.doLogin = async () => {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('li-btn');
+  errEl.style.display = 'none';
+  btn.textContent = 'Ingresando...'; btn.disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    let msg = 'Correo o contraseña incorrectos.';
+    if (e.code==='auth/too-many-requests') msg='Demasiados intentos. Intentá más tarde.';
+    errEl.textContent = msg; errEl.style.display = 'block';
+  } finally { btn.textContent='Ingresar'; btn.disabled=false; }
+};
+window.doLogout = async () => { await signOut(auth); };
+window.doReset  = async () => {
+  const e = document.getElementById('li-email').value.trim();
+  if (!e){ toast('Ingresá tu correo primero','err'); return; }
+  await sendPasswordResetEmail(auth, e);
+  toast('Correo de recuperación enviado','ok');
+};
+document.getElementById('li-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') window.doLogin(); });
+document.getElementById('li-email').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('li-pass').focus(); });
+
+// ── DASHBOARD ──
+async function loadDash() {
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+  try {
+    const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente')));
+    const pends = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const da=a.fechaVence?.toDate?.()??new Date(9999,0,1);
+      const db2=b.fechaVence?.toDate?.()??new Date(9999,0,1);
+      return da-db2;
+    });
 
-  // Traer todos los pendientes
-  const snap = await getDocs(query(collection(db,'pendientes'), where('estado','==','pendiente')));
-  const pendientes = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => {
-    const da = a.fechaVence?.toDate?.() || new Date(9999,0,1);
-    const db2 = b.fechaVence?.toDate?.() || new Date(9999,0,1);
-    return da - db2;
-  });
+    const cliSnap = await getDocs(collection(db,'clientes'));
+    const clis = {}; cliSnap.docs.forEach(d=>{ clis[d.id]=d.data(); });
 
-  // Traer clientes (para nombre)
-  const cliSnap = await getDocs(collection(db,'clientes'));
-  const clientes = {};
-  cliSnap.docs.forEach(d => { clientes[d.id] = d.data(); });
+    const urg  = pends.filter(p=>daysLeft(p.fechaVence)<=5).length;
+    const mes  = pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
 
-  // Stats
-  const urgent = pendientes.filter(p => diasRestantes(p.fechaVence) <= 5).length;
-  const mes    = pendientes.filter(p => {
-    const d = p.fechaVence.toDate();
-    return d <= finMes;
-  }).length;
+    const doneSnap = await getDocs(query(collection(db,'pendientes'), where('estado','==','completado')));
+    const doneEste = doneSnap.docs.filter(d=>{ const ts=d.data().completadoEn; if(!ts) return false; const dd=ts.toDate(); return dd.getMonth()===hoy.getMonth()&&dd.getFullYear()===hoy.getFullYear(); }).length;
 
-  const doneSnap = await getDocs(query(collection(db,'pendientes'), where('estado','==','completado')));
-  const doneEste = doneSnap.docs.filter(d => {
-    const ts = d.data().completadoEn;
-    if (!ts) return false;
-    const dd = ts.toDate();
-    return dd.getMonth() === hoy.getMonth() && dd.getFullYear() === hoy.getFullYear();
-  }).length;
+    document.getElementById('st-urg').textContent  = urg;
+    document.getElementById('st-mes').textContent  = mes;
+    document.getElementById('st-done').textContent = doneEste;
+    document.getElementById('st-cli').textContent  = cliSnap.size;
 
-  document.getElementById('stat-urgent').textContent  = urgent;
-  document.getElementById('stat-month').textContent   = mes;
-  document.getElementById('stat-done').textContent    = doneEste;
-  document.getElementById('stat-clients').textContent = cliSnap.size;
+    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    document.getElementById('dash-sub').textContent = `${meses[hoy.getMonth()]} ${hoy.getFullYear()} — ${urg} vencimiento${urg!==1?'s':''} urgente${urg!==1?'s':''}`;
 
-  const mes_nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  document.getElementById('dash-sub').textContent = `${mes_nombres[hoy.getMonth()]} ${hoy.getFullYear()} — ${urgent} vencimiento${urgent!==1?'s':''} urgente${urgent!==1?'s':''}`;
+    if (urg>0){ document.getElementById('nb-dash').textContent=urg; document.getElementById('nb-dash').style.display=''; document.getElementById('ndot').style.display=''; }
 
-  // Badge nav
-  if (urgent > 0) {
-    const b = document.getElementById('nav-badge-dashboard');
-    b.textContent = urgent; b.classList.remove('hidden');
-    document.getElementById('notif-dot').style.display = '';
-  }
-
-  // Tabla de próximos
-  const topPendientes = pendientes.slice(0, 10);
-  const listEl = document.getElementById('dash-ob-list');
-
-  if (topPendientes.length === 0) {
-    listEl.innerHTML = `<div class="ob-table-header" style="border-bottom:none"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div><div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes</div><div class="empty-desc">No hay obligaciones próximas</div></div>`;
-    return;
-  }
-
-  let rows = `<div class="ob-table-header"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>`;
-  for (const p of topPendientes) {
-    const dias   = diasRestantes(p.fechaVence);
-    const cliNom = clientes[p.clienteId]?.nombre || '—';
-    rows += `
-      <div class="ob-row" onclick="irACliente('${p.clienteId}')">
-        <div><span class="dot ${dotClass(dias)}"></span></div>
-        <div>
-          <div class="ob-name">${p.tipo || '—'}</div>
-          <div class="ob-client-name">${p.periodo || ''}</div>
-        </div>
-        <div style="font-size:13px">${cliNom}</div>
-        <div class="mono" style="font-size:12.5px; color:var(--muted)">${formatDate(p.fechaVence)}</div>
-        <div><span class="badge ${badgeClass(dias)}">${diasLabel(dias)}</span></div>
-        <div><span class="badge badge-yellow">Pendiente</span></div>
+    const el = document.getElementById('dash-list');
+    const top = pends.slice(0,10);
+    if (!top.length) {
+      el.innerHTML = `<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div><div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes próximos</div></div>`;
+      return;
+    }
+    let rows = `<div class="tbl-head"><div></div><div>Obligación</div><div>Cliente</div><div>Vence</div><div>Días restantes</div><div>Estado</div></div>`;
+    for (const p of top) {
+      const d = daysLeft(p.fechaVence);
+      rows += `<div class="tbl-row" onclick="goClient('${p.clienteId}')">
+        <div><span class="dot ${dotCls(d)}"></span></div>
+        <div><div style="font-weight:500">${p.tipo||'—'}</div><div style="font-size:11.5px;color:var(--muted)">${p.periodo||''}</div></div>
+        <div style="font-size:13px">${clis[p.clienteId]?.nombre||'—'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--muted)">${fmtDate(p.fechaVence)}</div>
+        <div><span class="badge ${badgeCls(d)}">${daysLbl(d)}</span></div>
+        <div><span class="badge b-yellow">Pendiente</span></div>
       </div>`;
-  }
-  listEl.innerHTML = rows;
+    }
+    el.innerHTML = rows;
+  } catch(e){ console.error('loadDash',e); toast('Error cargando dashboard','err'); }
+}
+window.goClient = function(id){ loadCdet(id); };
+
+// ── CLIENTES ──
+async function loadCli() {
+  try {
+    const snap = await getDocs(collection(db,'clientes'));
+    const docs = snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
+    document.getElementById('cli-sub').textContent = `${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
+    const el = document.getElementById('cli-list');
+    if (!docs.length) { el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div><div>Agregá tu primer cliente</div></div></div>`; return; }
+    let html = '';
+    for (const d of docs) {
+      const c = d.data();
+      const q2 = query(collection(db,'pendientes'), where('clienteId','==',d.id), where('estado','==','pendiente'));
+      const ps = await getDocs(q2);
+      const urg = ps.docs.filter(p=>daysLeft(p.data().fechaVence)<=5).length;
+      const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',d.id)));
+      const pills = obSnap.docs.slice(0,4).map(o=>`<span class="ob-pill">${o.data().tipo}</span>`).join('');
+      const alert = urg>0 ? `<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urg} urgente${urg!==1?'s':''}</span>` : `<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
+      html += `<div class="card cli-row" onclick="loadCdet('${d.id}')">
+        <div class="cli-av">${initials(c.nombre)}</div>
+        <div style="flex:1"><div class="cli-name">${c.nombre}</div><div class="cli-meta">${c.cedula||'Sin cédula'} · ${c.regimen||'Tradicional'}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">${alert}<div>${pills}</div></div>
+      </div>`;
+    }
+    el.innerHTML = html;
+  } catch(e){ console.error('loadCli',e); toast('Error cargando clientes','err'); }
 }
 
-window.irACliente = function(id) {
-  loadClienteDetalle(id);
+window.openMC = function(id=null) {
+  editCliId = id;
+  document.getElementById('m-cli-title').textContent = id?'Editar cliente':'Nuevo cliente';
+  if (!id) { document.getElementById('mc-nombre').value=''; document.getElementById('mc-cedula').value=''; document.getElementById('mc-reg').value='Tradicional'; document.getElementById('mc-notas').value=''; }
+  om('m-cli');
 };
-
-/* ───────────────────────────────────────
-   CLIENTES
-─────────────────────────────────────── */
-async function loadClientes() {
-  const snap = await getDocs(collection(db,'clientes'));
-  const sortedDocs = snap.docs.sort((a,b) => a.data().nombre?.localeCompare(b.data().nombre));
-  const listEl = document.getElementById('clients-list');
-  document.getElementById('clients-sub').textContent = `${snap.size} cliente${snap.size!==1?'s':''} activo${snap.size!==1?'s':''}`;
-
-  if (snap.empty) {
-    listEl.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">Sin clientes aún</div><div class="empty-desc">Agregá tu primer cliente para empezar</div></div></div>`;
-    return;
-  }
-
-  // Para cada cliente, contar urgentes
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  let html = '';
-  for (const d of sortedDocs) {
-    const c = d.data();
-    const q2 = query(collection(db,'pendientes'), where('clienteId','==',d.id), where('estado','==','pendiente'));
-    const ps  = await getDocs(q2);
-    const urgent = ps.docs.filter(p => diasRestantes(p.data().fechaVence) <= 5).length;
-
-    // Obligaciones del cliente
-    const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',d.id)));
-    const pills  = obSnap.docs.slice(0,4).map(o => `<span class="ob-pill">${o.data().tipo}</span>`).join('');
-
-    const alertTag = urgent > 0
-      ? `<span style="font-size:11px;font-weight:700;color:var(--red)">⚠ ${urgent} urgente${urgent!==1?'s':''}</span>`
-      : `<span style="font-size:11px;font-weight:600;color:var(--green)">✓ Al día</span>`;
-
-    html += `
-      <div class="card client-row" onclick="loadClienteDetalle('${d.id}')">
-        <div class="client-row-avatar">${initials(c.nombre)}</div>
-        <div class="client-row-info">
-          <div class="client-row-name">${c.nombre}</div>
-          <div class="client-row-meta">${c.cedula || 'Sin cédula'} · ${c.regimen || 'Tradicional'}</div>
-        </div>
-        <div class="client-row-right">
-          ${alertTag}
-          <div class="client-ob-pills">${pills}</div>
-        </div>
-      </div>`;
-  }
-  listEl.innerHTML = html;
-}
-
-window.openModalCliente = function(id=null) {
-  editClienteId = id;
-  document.getElementById('modal-cliente-title').textContent = id ? 'Editar cliente' : 'Nuevo cliente';
-  if (!id) {
-    document.getElementById('mc-nombre').value  = '';
-    document.getElementById('mc-cedula').value  = '';
-    document.getElementById('mc-regimen').value = 'Tradicional';
-    document.getElementById('mc-notas').value   = '';
-  }
-  openModal('modal-cliente');
+window.editCli = function() {
+  if (!CC) return;
+  document.getElementById('mc-nombre').value = CC.nombre||'';
+  document.getElementById('mc-cedula').value = CC.cedula||'';
+  document.getElementById('mc-reg').value    = CC.regimen||'Tradicional';
+  document.getElementById('mc-notas').value  = CC.notas||'';
+  editCliId = CC.id;
+  document.getElementById('m-cli-title').textContent = 'Editar cliente';
+  om('m-cli');
 };
-
-window.editarClienteActual = function() {
-  if (!currentCliente) return;
-  const c = currentCliente;
-  document.getElementById('mc-nombre').value  = c.nombre  || '';
-  document.getElementById('mc-cedula').value  = c.cedula  || '';
-  document.getElementById('mc-regimen').value = c.regimen || 'Tradicional';
-  document.getElementById('mc-notas').value   = c.notas   || '';
-  editClienteId = c.id;
-  document.getElementById('modal-cliente-title').textContent = 'Editar cliente';
-  openModal('modal-cliente');
-};
-
-window.guardarCliente = async function() {
+window.saveCli = async function() {
   const nombre = document.getElementById('mc-nombre').value.trim();
-  if (!nombre) { showToast('El nombre es requerido', 'error'); return; }
-  const data = {
-    nombre,
-    cedula:   document.getElementById('mc-cedula').value.trim(),
-    regimen:  document.getElementById('mc-regimen').value,
-    notas:    document.getElementById('mc-notas').value.trim(),
-    activo:   true,
-    creadoPor: currentUser.uid
-  };
-  if (editClienteId) {
-    await updateDoc(doc(db,'clientes',editClienteId), data);
-    showToast('Cliente actualizado', 'success');
-  } else {
-    data.creadoEn = serverTimestamp();
-    const ref = await addDoc(collection(db,'clientes'), data);
-    showToast('Cliente creado', 'success');
-  }
-  closeModal('modal-cliente');
-  loadClientes();
+  if (!nombre){ toast('El nombre es requerido','err'); return; }
+  const data = { nombre, cedula:document.getElementById('mc-cedula').value.trim(), regimen:document.getElementById('mc-reg').value, notas:document.getElementById('mc-notas').value.trim(), activo:true };
+  try {
+    if (editCliId) {
+      await updateDoc(doc(db,'clientes',editCliId), data);
+      toast('Cliente actualizado','ok');
+      CC = { ...CC, ...data };
+      document.getElementById('cd-name').textContent = data.nombre;
+      document.getElementById('cd-meta').textContent = `${data.cedula||'Sin cédula'} · ${data.regimen||'Tradicional'}`;
+      document.getElementById('cd-av').textContent   = initials(data.nombre);
+      document.getElementById('bc-name').textContent = data.nombre;
+    } else {
+      await addDoc(collection(db,'clientes'), {...data, creadoEn:serverTimestamp(), creadoPor:CU.uid});
+      toast('Cliente creado','ok');
+    }
+    cm('m-cli'); loadCli();
+  } catch(e){ console.error('saveCli',e); toast('Error guardando cliente','err'); }
 };
 
-/* ───────────────────────────────────────
-   CLIENTE DETALLE
-─────────────────────────────────────── */
-window.loadClienteDetalle = async function(id) {
-  showView('cliente-detalle');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+// ── CLIENTE DETALLE ──
+window.loadCdet = async function(id) {
+  try {
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
+    document.getElementById('v-cdet').classList.add('show');
+    document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
+    document.getElementById('si-cli').classList.add('active');
 
-  const cDoc = await getDoc(doc(db,'clientes',id));
-  if (!cDoc.exists()) { showToast('Cliente no encontrado','error'); return; }
-  const c = { id, ...cDoc.data() };
-  currentCliente = c;
+    const cDoc = await getDoc(doc(db,'clientes',id));
+    if (!cDoc.exists()){ toast('Cliente no encontrado','err'); return; }
+    CC = { id, ...cDoc.data() };
 
-  // Header
-  document.getElementById('bc-cliente-name').textContent  = c.nombre;
-  document.getElementById('cd-avatar').textContent        = initials(c.nombre);
-  document.getElementById('cd-name').textContent          = c.nombre;
-  document.getElementById('cd-meta').textContent          = `${c.cedula||'Sin cédula'} · ${c.regimen||'Tradicional'}`;
+    document.getElementById('bc-name').textContent  = CC.nombre;
+    document.getElementById('cd-av').textContent    = initials(CC.nombre);
+    document.getElementById('cd-name').textContent  = CC.nombre;
+    document.getElementById('cd-meta').textContent  = `${CC.cedula||'Sin cédula'} · ${CC.regimen||'Tradicional'}`;
 
-  // Pendientes
-  const psSnap = await getDocs(query(
-    collection(db,'pendientes'),
-    where('clienteId','==',id),
-    where('estado','==','pendiente')
-  ));
-  const pendientes = psSnap.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => {
-    const da = a.fechaVence?.toDate?.() || new Date(9999,0,1);
-    const db2 = b.fechaVence?.toDate?.() || new Date(9999,0,1);
-    return da - db2;
-  });
+    const psSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','pendiente')));
+    const pends = psSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const da=a.fechaVence?.toDate?.()??new Date(9999,0,1);
+      const db2=b.fechaVence?.toDate?.()??new Date(9999,0,1);
+      return da-db2;
+    });
 
-  const urgent  = pendientes.filter(p => diasRestantes(p.fechaVence) <= 5);
-  const warning = pendientes.filter(p => { const d=diasRestantes(p.fechaVence); return d>5 && d<=15; });
-  const ok      = pendientes.filter(p => diasRestantes(p.fechaVence) > 15);
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const finMes = new Date(hoy.getFullYear(), hoy.getMonth()+1, 0);
+    const urg  = pends.filter(p=>daysLeft(p.fechaVence)<=5);
+    const warn = pends.filter(p=>{ const d=daysLeft(p.fechaVence); return d>5&&d<=15; });
+    const ok   = pends.filter(p=>daysLeft(p.fechaVence)>15);
 
-  document.getElementById('cd-stat-urgent').textContent = urgent.length;
-  document.getElementById('cd-stat-month').textContent  = pendientes.filter(p => {
-    const d = p.fechaVence.toDate(); const hoy=new Date();
-    return d.getMonth()===hoy.getMonth() && d.getFullYear()===hoy.getFullYear();
-  }).length;
+    document.getElementById('ms-urg').textContent  = urg.length;
+    document.getElementById('ms-mes').textContent  = pends.filter(p=>{ const d=p.fechaVence?.toDate?.()??new Date(9999,0,1); return d<=finMes; }).length;
 
-  // Completadas
-  const doneSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','completado')));
-  document.getElementById('cd-stat-done').textContent  = doneSnap.size;
+    const doneSnap = await getDocs(query(collection(db,'pendientes'), where('clienteId','==',id), where('estado','==','completado')));
+    document.getElementById('ms-done').textContent = doneSnap.size;
+    const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',id)));
+    document.getElementById('ms-tot').textContent  = obSnap.size;
 
-  const obSnap = await getDocs(query(collection(db,'obligaciones'), where('clienteId','==',id)));
-  document.getElementById('cd-stat-total').textContent = obSnap.size;
+    renderPC('p-urgent',  urg);
+    renderPC('p-warning', warn);
+    renderPC('p-ok',      ok);
 
-  renderPendingCards('pending-urgent',  urgent);
-  renderPendingCards('pending-warning', warning);
-  renderPendingCards('pending-ok',      ok);
-
-  // Historial (últimas 10)
-  const histSnap = await getDocs(query(
-    collection(db,'pendientes'),
-    where('clienteId','==',id),
-    where('estado','==','completado')
-  ));
-  const histDocs = histSnap.docs.sort((a,b) => {
-    const da = a.data().completadoEn?.toDate?.() || new Date(0);
-    const db2 = b.data().completadoEn?.toDate?.() || new Date(0);
-    return db2 - da;
-  });
-  renderHistorial(histDocs.slice(0,10));
+    const histDocs = doneSnap.docs.sort((a,b)=>{ const da=a.data().completadoEn?.toDate?.()??new Date(0); const db2=b.data().completadoEn?.toDate?.()??new Date(0); return db2-da; });
+    renderHist(histDocs.slice(0,10));
+  } catch(e){ console.error('loadCdet',e); toast('Error cargando cliente','err'); }
 };
 
-function renderPendingCards(containerId, items) {
-  const el = document.getElementById(containerId);
-  if (items.length === 0) {
-    el.innerHTML = `<div style="font-size:12.5px;color:var(--muted);padding:4px 0">Sin pendientes en esta categoría</div>`;
-    return;
-  }
-  el.innerHTML = items.map(p => {
-    const dias = diasRestantes(p.fechaVence);
-    return `
-      <div class="pending-card ${urgencyClass(dias)}" id="pcard-${p.id}">
-        <div class="check-circle" id="pcheck-${p.id}" onclick="abrirModalDone('${p.id}','${(p.tipo||'').replace(/'/g,"\\'")}','${p.periodo||''}')">✓</div>
-        <div class="pending-card-info">
-          <div class="pending-card-title" id="ptitle-${p.id}">${p.tipo||'—'}</div>
-          <div class="pending-card-desc">Período: ${p.periodo||'—'}${p.nota ? ' · '+p.nota : ''}</div>
-        </div>
-        <div class="pending-card-right">
-          <div class="pending-date">Vence ${formatDate(p.fechaVence)}</div>
-          <span class="badge ${badgeClass(dias)}">${diasLabel(dias)}</span>
-        </div>
-      </div>`;
+function renderPC(cid, items) {
+  const el = document.getElementById(cid);
+  if (!items.length){ el.innerHTML=`<div style="font-size:12.5px;color:var(--muted);padding:4px 0 12px">Sin pendientes en esta categoría</div>`; return; }
+  el.innerHTML = items.map(p=>{
+    const d = daysLeft(p.fechaVence);
+    return `<div class="pc ${urgCls(d)}" id="pc-${p.id}">
+      <div class="chk" id="chk-${p.id}" onclick="openDone('${p.id}','${(p.tipo||'').replace(/'/g,"\\'")}','${p.periodo||''}')">✓</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;margin-bottom:2px" id="pct-${p.id}">${p.tipo||'—'}</div>
+        <div style="font-size:12px;color:var(--muted)">Período: ${p.periodo||'—'}${p.nota?' · '+p.nota:''}</div>
+      </div>
+      <div class="pc-right">
+        <div class="pc-date">Vence ${fmtDate(p.fechaVence)}</div>
+        <span class="badge ${badgeCls(d)}">${daysLbl(d)}</span>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function renderHistorial(docs) {
-  const el = document.getElementById('hist-list-cliente');
-  if (docs.length === 0) {
-    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:12.5px">Sin completadas aún</div>`;
-    return;
-  }
-  el.innerHTML = docs.map(d => {
-    const p = d.data();
-    const dias = p.diasTardio || 0;
-    const tag  = dias <= 0
-      ? `<span class="hist-tag hist-tag-green">A tiempo</span>`
-      : `<span class="hist-tag hist-tag-red">${dias}d tarde</span>`;
-    return `
-      <div class="hist-item">
-        <div class="hist-dot ${dias<=0?'dot-green':'dot-red'}"></div>
-        <div class="hist-content">
-          <div class="hist-title">${p.tipo||'—'} — ${p.periodo||'—'} ${tag}</div>
-          <div class="hist-meta">${p.realizadoPor||'—'}${p.notaCompletado?' · '+p.notaCompletado:''}</div>
-        </div>
-        <div class="hist-date">${formatDate(p.completadoEn)}</div>
-      </div>`;
+function renderHist(docs) {
+  const el = document.getElementById('hist-list');
+  if (!docs.length){ el.innerHTML=`<div style="padding:18px;text-align:center;font-size:12.5px;color:var(--muted)">Sin completadas aún</div>`; return; }
+  el.innerHTML = docs.map(d=>{
+    const p=d.data(); const tard=p.diasTardio||0;
+    const tag = tard<=0 ? `<span class="htag htag-g">A tiempo</span>` : `<span class="htag htag-r">${tard}d tarde</span>`;
+    return `<div class="hi">
+      <div class="hd" style="background:${tard<=0?'var(--green)':'var(--red)'}"></div>
+      <div style="flex:1"><div class="ht">${p.tipo||'—'} — ${p.periodo||'—'} ${tag}</div><div class="hm">${p.realizadoPor||'—'}${p.notaCompletado?' · '+p.notaCompletado:''}</div></div>
+      <div class="hdate">${fmtDate(p.completadoEn)}</div>
+    </div>`;
   }).join('');
 }
 
-/* ───────────────────────────────────────
-   MARCAR COMO HECHO
-─────────────────────────────────────── */
-window.abrirModalDone = function(id, tipo, periodo) {
-  pendingDoneId = id;
-  document.getElementById('modal-done-sub').textContent = `${tipo} — ${periodo}`;
-  document.getElementById('modal-done-nota').value = '';
-  openModal('modal-done');
+// ── MARCAR DONE ──
+window.openDone = function(id, tipo, periodo) {
+  pendDoneId = id;
+  document.getElementById('m-done-sub').textContent = `${tipo} — ${periodo}`;
+  document.getElementById('md-nota').value = '';
+  om('m-done');
+};
+window.confirmDone = async function() {
+  if (!pendDoneId) return;
+  const quien = document.getElementById('md-quien').value;
+  const nota  = document.getElementById('md-nota').value.trim();
+  try {
+    const pDoc = await getDoc(doc(db,'pendientes',pendDoneId));
+    const d    = daysLeft(pDoc.data().fechaVence);
+    await updateDoc(doc(db,'pendientes',pendDoneId), {
+      estado:'completado', realizadoPor:quien, notaCompletado:nota,
+      completadoEn:serverTimestamp(), diasTardio:d<0?Math.abs(d):0
+    });
+    const card = document.getElementById(`pc-${pendDoneId}`);
+    const chk  = document.getElementById(`chk-${pendDoneId}`);
+    const tit  = document.getElementById(`pct-${pendDoneId}`);
+    if (chk) chk.classList.add('checked');
+    if (tit) tit.style.textDecoration='line-through';
+    if (card) card.classList.add('fading');
+    setTimeout(()=>{ if(card) card.style.display='none'; }, 900);
+    cm('m-done');
+    toast(`✓ Completado por ${quien}`,'ok');
+    if (CC) setTimeout(()=>loadCdet(CC.id), 1100);
+  } catch(e){ console.error('confirmDone',e); toast('Error al guardar','err'); }
 };
 
-window.confirmarDone = async function() {
-  if (!pendingDoneId) return;
-  const quien = document.getElementById('modal-done-quien').value;
-  const nota  = document.getElementById('modal-done-nota').value.trim();
-
-  // Calcular días de tardanza
-  const pDoc = await getDoc(doc(db,'pendientes',pendingDoneId));
-  const p    = pDoc.data();
-  const hoy  = new Date(); hoy.setHours(0,0,0,0);
-  const dias = diasRestantes(p.fechaVence);
-  const tardio = dias < 0 ? Math.abs(dias) : 0;
-
-  await updateDoc(doc(db,'pendientes',pendingDoneId), {
-    estado:          'completado',
-    realizadoPor:    quien,
-    notaCompletado:  nota,
-    completadoEn:    serverTimestamp(),
-    diasTardio:      tardio
-  });
-
-  // Animar card
-  const card  = document.getElementById(`pcard-${pendingDoneId}`);
-  const check = document.getElementById(`pcheck-${pendingDoneId}`);
-  const title = document.getElementById(`ptitle-${pendingDoneId}`);
-  if (card)  card.classList.add('fading');
-  if (check) check.classList.add('checked');
-  if (title) title.classList.add('done');
-  setTimeout(() => { if(card) card.style.display='none'; }, 1000);
-
-  closeModal('modal-done');
-  showToast(`✓ Marcado como completado por ${quien}`, 'success');
-
-  // Recargar stats
-  if (currentCliente) setTimeout(() => loadClienteDetalle(currentCliente.id), 1200);
-};
-
-/* ───────────────────────────────────────
-   OBLIGACIONES (por cliente)
-─────────────────────────────────────── */
-window.openModalObligacion = async function() {
-  if (!currentCliente) return;
-  document.getElementById('modal-ob-sub').textContent = `Para: ${currentCliente.nombre}`;
-  // Llenar select de tipos
+// ── OBLIGACIONES ──
+window.openMO = async function() {
+  if (!CC) return;
+  document.getElementById('m-ob-sub').textContent = `Para: ${CC.nombre}`;
   const snap = await getDocs(collection(db,'tipos_obligacion'));
   const sel  = document.getElementById('mo-tipo');
   sel.innerHTML = '<option value="">— Seleccionar —</option>';
-  snap.docs.forEach(d => {
-    const t = d.data();
-    sel.innerHTML += `<option value="${d.id}" data-freq="${t.frecuencia}" data-dia="${t.dia}">${t.nombre}</option>`;
-  });
-  openModal('modal-obligacion');
+  snap.docs.forEach(d=>{ const t=d.data(); sel.innerHTML+=`<option value="${d.id}" data-freq="${t.frecuencia}" data-dia="${t.dia}">${t.nombre}</option>`; });
+  om('m-ob');
 };
-
-window.onTipoObChange = function() {
-  const sel  = document.getElementById('mo-tipo');
-  const opt  = sel.selectedOptions[0];
-  if (!opt || !opt.dataset.freq) return;
-  document.getElementById('mo-frecuencia').value = opt.dataset.freq;
-  document.getElementById('mo-dia').value        = opt.dataset.dia;
+window.onTipoChange = function() {
+  const opt = document.getElementById('mo-tipo').selectedOptions[0];
+  if (!opt?.dataset.freq) return;
+  document.getElementById('mo-freq').value = opt.dataset.freq;
+  document.getElementById('mo-dia').value  = opt.dataset.dia;
 };
-
-window.guardarObligacion = async function() {
-  if (!currentCliente) return;
+window.saveOb = async function() {
+  if (!CC) return;
   const tipoId = document.getElementById('mo-tipo').value;
-  if (!tipoId) { showToast('Seleccioná un tipo de obligación', 'error'); return; }
-
-  const tipoDoc = await getDoc(doc(db,'tipos_obligacion',tipoId));
-  const tipo    = tipoDoc.data().nombre;
-
-  const data = {
-    clienteId:   currentCliente.id,
-    tipoId,
-    tipo,
-    frecuencia:  document.getElementById('mo-frecuencia').value,
-    dia:         parseInt(document.getElementById('mo-dia').value) || 15,
-    aviso:       parseInt(document.getElementById('mo-aviso').value) || 7,
-    nota:        document.getElementById('mo-nota').value.trim(),
-    activo:      true,
-    creadoEn:    serverTimestamp(),
-    creadoPor:   currentUser.uid
-  };
-
-  const ref = await addDoc(collection(db,'obligaciones'), data);
-  showToast('Obligación agregada. Generando pendientes...', 'success');
-  closeModal('modal-obligacion');
-
-  // Generar pendientes automáticos
-  await generarPendientes(currentCliente.id, ref.id, data);
-  showToast('✓ Pendientes generados automáticamente', 'success');
-  loadClienteDetalle(currentCliente.id);
+  if (!tipoId){ toast('Seleccioná un tipo de obligación','err'); return; }
+  try {
+    const tDoc = await getDoc(doc(db,'tipos_obligacion',tipoId));
+    const tipo = tDoc.data().nombre;
+    const data = {
+      clienteId:CC.id, tipoId, tipo,
+      frecuencia: document.getElementById('mo-freq').value,
+      dia:        parseInt(document.getElementById('mo-dia').value)||15,
+      aviso:      parseInt(document.getElementById('mo-aviso').value)||7,
+      nota:       document.getElementById('mo-nota').value.trim(),
+      activo:true, creadoEn:serverTimestamp(), creadoPor:CU.uid
+    };
+    const ref = await addDoc(collection(db,'obligaciones'), data);
+    cm('m-ob');
+    toast('Generando pendientes automáticos...','ok');
+    await genPendientes(CC.id, ref.id, data);
+    toast('✓ Obligación creada y pendientes generados','ok');
+    loadCdet(CC.id);
+  } catch(e){ console.error('saveOb',e); toast('Error guardando obligación','err'); }
 };
 
-/* ───────────────────────────────────────
-   TIPOS DE OBLIGACIÓN (config)
-─────────────────────────────────────── */
-async function loadTiposOb() {
-  const snap = await getDocs(collection(db,'tipos_obligacion'));
-  const el   = document.getElementById('tipos-ob-list');
-  if (snap.empty) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos aún</div></div>`;
-    return;
-  }
-  const freqLabel = { mensual:'Mensual', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual', personalizada:'Personalizada' };
-  let html = '';
-  snap.docs.forEach(d => {
-    const t = d.data();
-    html += `
-      <div class="config-ob-row">
-        <div class="config-ob-name">${t.nombre}<br><span style="font-size:11.5px;color:var(--muted)">${t.descripcion||''}</span></div>
-        <div><span class="config-ob-freq">${freqLabel[t.frecuencia]||t.frecuencia}</span></div>
-        <div class="config-ob-date">Día ${t.dia||'—'}</div>
-      </div>`;
-  });
-  el.innerHTML = html;
+// ── CONFIG ──
+async function loadCfg() {
+  try {
+    const snap = await getDocs(collection(db,'tipos_obligacion'));
+    const el   = document.getElementById('cfg-list');
+    if (!snap.size){ el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos aún</div></div>`; return; }
+    const fl = {mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
+    let h = '';
+    snap.docs.forEach(d=>{ const t=d.data(); h+=`<div class="cfg-row"><div class="cfg-name">${t.nombre}<br><span style="font-size:11.5px;color:var(--muted)">${t.descripcion||''}</span></div><span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span><span style="font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:60px;text-align:right">Día ${t.dia||'—'}</span></div>`; });
+    el.innerHTML = h;
+  } catch(e){ console.error('loadCfg',e); }
 }
-
-window.openModalTipoOb = function() {
-  document.getElementById('mto-nombre').value    = '';
-  document.getElementById('mto-desc').value      = '';
-  document.getElementById('mto-frecuencia').value= 'mensual';
-  document.getElementById('mto-dia').value       = '15';
-  openModal('modal-tipo-ob');
+window.openMTO = function() {
+  document.getElementById('mto-nombre').value=''; document.getElementById('mto-desc').value='';
+  document.getElementById('mto-freq').value='mensual'; document.getElementById('mto-dia').value='15';
+  om('m-to');
 };
-
-window.guardarTipoOb = async function() {
+window.saveTO = async function() {
   const nombre = document.getElementById('mto-nombre').value.trim();
-  if (!nombre) { showToast('El nombre es requerido','error'); return; }
-  await addDoc(collection(db,'tipos_obligacion'), {
-    nombre,
-    descripcion: document.getElementById('mto-desc').value.trim(),
-    frecuencia:  document.getElementById('mto-frecuencia').value,
-    dia:         parseInt(document.getElementById('mto-dia').value)||15,
-    activo:      true,
-    creadoPor:   currentUser.uid
-  });
-  showToast('Tipo de obligación creado','success');
-  closeModal('modal-tipo-ob');
-  loadTiposOb();
+  if (!nombre){ toast('El nombre es requerido','err'); return; }
+  try {
+    await addDoc(collection(db,'tipos_obligacion'), { nombre, descripcion:document.getElementById('mto-desc').value.trim(), frecuencia:document.getElementById('mto-freq').value, dia:parseInt(document.getElementById('mto-dia').value)||15, activo:true, creadoPor:CU.uid });
+    toast('Tipo creado','ok'); cm('m-to'); loadCfg();
+  } catch(e){ toast('Error guardando','err'); }
 };
 
-/* ───────────────────────────────────────
-   NOTIFICACIONES (FCM básico)
-─────────────────────────────────────── */
-window.habilitarNotificaciones = async function() {
-  if (!('Notification' in window)) { showToast('Tu navegador no soporta notificaciones','error'); return; }
-  const perm = await Notification.requestPermission();
-  if (perm === 'granted') {
-    document.getElementById('btn-enable-notif').style.display = 'none';
-    document.getElementById('notif-ok-msg').style.display = '';
-    showToast('✓ Notificaciones activadas','success');
-  } else {
-    showToast('Permiso denegado','error');
-  }
+// ── NOTIF ──
+window.enableNotif = async function() {
+  if (!('Notification' in window)){ toast('Tu navegador no soporta notificaciones','err'); return; }
+  const p = await Notification.requestPermission();
+  if (p==='granted'){ document.getElementById('btn-notif').style.display='none'; document.getElementById('notif-ok').style.display=''; toast('✓ Notificaciones activadas','ok'); }
+  else toast('Permiso denegado','err');
 };
 </script>
-
 </body>
 </html>
