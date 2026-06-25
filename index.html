@@ -954,7 +954,7 @@ window.loadCtrl=async function(){
     }
     html+=`</tbody></table>`;el.innerHTML=html;
   }catch(e){console.error(e);toast('Error','err');}
-}};
+};
 
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Tu navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
 </script>
