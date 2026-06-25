@@ -705,7 +705,7 @@ async function loadCli(filtro='todos'){
   try{
     const snap=await getDocs(collection(db,'clientes'));
     let docs=snap.docs.sort((a,b)=>(a.data().nombre||'').localeCompare(b.data().nombre||''));
-    if(filtro!=='todos') docs=docs.filter(d=>d.data().encargado===filtro);
+    if(filtro!=='todos') docs=docs.filter(d=>(d.data().encargado||'')===filtro);
     const total=snap.docs.length, mostrando=docs.length;
     document.getElementById('cli-sub').textContent=filtro==='todos'?`${total} cliente${total!==1?'s':''}`:`${mostrando} de ${total} — ${filtro}`;
     const el=document.getElementById('cli-list');
@@ -860,7 +860,13 @@ window.loadEnc=async function(enc){
   const tabEl=document.getElementById('etab-'+enc.toLowerCase());if(tabEl)tabEl.classList.add('active');
   const el=document.getElementById('enc-list');el.innerHTML=`<div style="padding:24px;text-align:center"><div class="spinner"></div></div>`;
   try{
-    const snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente'),where('responsable','==',enc)));
+    // Para 'Ambos' traemos todos y filtramos en JS
+    let snap;
+    if(enc==='Ambos'){
+      snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente')));
+    } else {
+      snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente'),where('responsable','==',enc)));
+    }
     const pends=sortByDate(snap.docs.map(d=>({id:d.id,...d.data()})));
     const cliSnap=await getDocs(collection(db,'clientes'));const clis={};cliSnap.docs.forEach(d=>{clis[d.id]=d.data();});
     if(!pends.length){el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">✓</div><div class="empty-title">Sin pendientes para ${enc}</div></div></div>`;return;}
@@ -956,7 +962,30 @@ window.loadCtrl=async function(){
   }catch(e){console.error(e);toast('Error','err');}
 };
 
+// ── CONFIG ──
+async function loadCfg(){
+  try{
+    const snap=await getDocs(collection(db,'tipos_obligacion'));const el=document.getElementById('cfg-list');
+    if(!snap.size){el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin tipos</div></div>`;return;}
+    const fl={mensual:'Mensual',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',personalizada:'Personalizada'};
+    let h='';snap.docs.forEach(d=>{const t=d.data();h+=`<div class="cfg-row"><div class="cfg-name">${t.nombre}<br><span style="font-size:11px;color:var(--muted)">${t.descripcion||''}</span></div><span class="cfg-freq">${fl[t.frecuencia]||t.frecuencia}</span><span style="font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:55px;text-align:right">Día ${t.dia||'—'}</span><button class="btn btn-ghost btn-sm" style="margin-left:8px;flex-shrink:0" onclick="editTO('${d.id}')">✏️</button></div>`;});
+    el.innerHTML=h;
+  }catch(e){console.error(e);}
+}
+window.openMTO=function(){editTOId=null;document.getElementById('m-to-title').textContent='Nuevo tipo';['mto-nombre','mto-desc'].forEach(i=>document.getElementById(i).value='');document.getElementById('mto-freq').value='mensual';document.getElementById('mto-dia').value='15';om('m-to');};
+window.editTO=async function(id){editTOId=id;const d=await getDoc(doc(db,'tipos_obligacion',id));const t=d.data();document.getElementById('m-to-title').textContent='Editar tipo';document.getElementById('mto-nombre').value=t.nombre||'';document.getElementById('mto-desc').value=t.descripcion||'';document.getElementById('mto-freq').value=t.frecuencia||'mensual';document.getElementById('mto-dia').value=t.dia||15;om('m-to');};
+window.saveTO=async function(){const nombre=document.getElementById('mto-nombre').value.trim();if(!nombre){toast('El nombre es requerido','err');return;}const data={nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};try{if(editTOId){await updateDoc(doc(db,'tipos_obligacion',editTOId),data);toast('Tipo actualizado','ok');}else{await addDoc(collection(db,'tipos_obligacion'),{...data,creadoPor:CU.uid});toast('Tipo creado','ok');}cm('m-to');loadCfg();}catch(e){toast('Error','err');}};
+
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Tu navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(r => console.log("SW registered", r.scope))
+      .catch(e => console.log("SW error", e));
+  });
+}
 </script>
 </body>
 </html>
