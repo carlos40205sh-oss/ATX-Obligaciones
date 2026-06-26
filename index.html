@@ -424,7 +424,8 @@ select.form-input{cursor:pointer}
 
       <!-- TIPOS CONFIG -->
       <div class="view" id="v-cfg">
-        <div style="padding:16px 16px 8px;display:flex;justify-content:flex-end">
+        <div style="padding:16px 16px 8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-ghost btn-sm" style="color:var(--orange);border-color:var(--orange)" onclick="limpiarTodosFuturos()">🧹 Limpiar futuros</button>
           <button class="btn btn-outline btn-sm" onclick="openMTO()">＋ Nuevo tipo</button>
         </div>
         <div class="card" style="margin:0 16px 16px;padding:0" id="cfg-list">
@@ -457,10 +458,6 @@ select.form-input{cursor:pointer}
       </div>
     </div>
 
-    <!-- FAB: Nuevo cliente -->
-    <div class="fab" id="fab-cli" style="display:none;background:var(--purple)" onclick="openMC()">＋</div>
-    <!-- FAB: Nueva obligación global -->
-    <div class="fab" id="fab-ob" style="display:none;background:var(--purple)" onclick="openMOGlobal()">＋</div>
   </div><!-- /app-body -->
 </div><!-- /pg-app -->
 
@@ -591,6 +588,10 @@ select.form-input{cursor:pointer}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- FABs -->
+<div class="fab" id="fab-cli" style="display:none" onclick="openMC()">＋</div>
+<div class="fab" id="fab-ob" style="display:none" onclick="openMOGlobal()">＋</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -769,16 +770,53 @@ function nextDate(frecuencia, dia){
 }
 
 async function genSiguiente(clienteId,obId,obData){
-  const ex=await getDocs(query(collection(db,'pendientes'),where('clienteId','==',clienteId),where('obligacionId','==',obId),where('estado','==','pendiente')));
-  if(ex.size>0)return 0;
+  // Solo generar si no hay ninguno pendiente activo para esta obligacion
+  const ex=await getDocs(query(collection(db,'pendientes'),
+    where('clienteId','==',clienteId),
+    where('obligacionId','==',obId),
+    where('estado','==','pendiente')));
+  if(ex.size>0) return 0;
+
   const fecha=nextDate(obData.frecuencia,obData.dia);
   const periodo=`${fecha.getFullYear()}-${String(fecha.getMonth()+1).padStart(2,'0')}`;
-  const dup=await getDocs(query(collection(db,'pendientes'),where('clienteId','==',clienteId),where('obligacionId','==',obId),where('periodo','==',periodo)));
-  if(!dup.empty)return 0;
-  const np={clienteId,obligacionId:obId,tipo:obData.tipo,periodo,fechaVence:Timestamp.fromDate(fecha),diasAviso:obData.aviso||7,estado:'pendiente',nota:obData.nota||'',responsable:obData.responsable||'Ambos',realizadoPor:'',creadoEn:serverTimestamp(),auto:true,manual:false};
-  await addDoc(collection(db,'pendientes'),np);
-  allPendientes.push({id:'new',...np});
+
+  // Verificar que no exista ya ese periodo
+  const dup=await getDocs(query(collection(db,'pendientes'),
+    where('clienteId','==',clienteId),
+    where('obligacionId','==',obId),
+    where('periodo','==',periodo)));
+  if(!dup.empty) return 0;
+
+  // La fecha de activacion es el dia 1 del mes del periodo
+  // La fecha de vencimiento es el dia configurado en ese mes
+  const np={
+    clienteId, obligacionId:obId, tipo:obData.tipo, periodo,
+    fechaVence:Timestamp.fromDate(fecha),
+    diasAviso:obData.aviso||7, estado:'pendiente',
+    nota:obData.nota||'', responsable:obData.responsable||'Ambos',
+    realizadoPor:'', creadoEn:serverTimestamp(), auto:true, manual:false
+  };
+  const ref=await addDoc(collection(db,'pendientes'),np);
+  allPendientes.push({id:ref.id,...np});
   return 1;
+}
+
+// Limpiar pendientes futuros acumulados de una obligacion
+async function limpiarFuturos(clienteId,obId){
+  const hoy=new Date();
+  const mesActual=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+  const snap=await getDocs(query(collection(db,'pendientes'),
+    where('clienteId','==',clienteId),
+    where('obligacionId','==',obId),
+    where('estado','==','pendiente')));
+  // Eliminar todos los pendientes futuros (mas de uno activo)
+  const todos=snap.docs.sort((a,b)=>a.data().periodo?.localeCompare(b.data().periodo||'')||0);
+  if(todos.length<=1) return; // solo uno, ok
+  // Mantener solo el mas proximo, eliminar el resto
+  for(let i=1;i<todos.length;i++){
+    await deleteDoc(doc(db,'pendientes',todos[i].id));
+    allPendientes=allPendientes.filter(p=>p.id!==todos[i].id);
+  }
 }
 
 // ── LOGIN ──
@@ -934,25 +972,53 @@ window.setObFilter=function(f){
   ['todos','pend','done'].forEach(t=>{document.getElementById('obtab-'+t)?.classList.toggle('active',t===(f==='pendiente'?'pend':f==='completado'?'done':'todos'));});
   renderOb();
 };
+
 async function renderOb(){
   const el=document.getElementById('ob-list');
   el.innerHTML='<div class="card" style="padding:24px;text-align:center"><div class="spinner" style="border-top-color:var(--purple);border-color:var(--border);margin:auto"></div></div>';
   try{
+    const hoy=new Date();
+    const mesActual=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+
     let snap;
-    if(obFilter==='todos') snap=await getDocs(collection(db,'pendientes'));
-    else snap=await getDocs(query(collection(db,'pendientes'),where('estado','==',obFilter)));
+    if(obFilter==='completado'){
+      snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','completado')));
+    } else {
+      // Solo mostrar pendientes del mes actual y vencidos (no futuros)
+      snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente')));
+    }
+
     const cliMap={};allClientes.forEach(c=>{cliMap[c.id]=c;});
-    const pends=sortByDate(snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>!p.manual));
-    if(!pends.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Sin obligaciones</div></div></div>';return;}
-    // Group by month
+    let pends=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>!p.manual);
+
+    if(obFilter==='pendiente'){
+      // Solo del mes actual o vencidos
+      pends=pends.filter(p=>{
+        if(!p.periodo) return true; // sin periodo siempre mostrar
+        return p.periodo<=mesActual; // este mes o anteriores
+      });
+    } else if(obFilter==='todos'){
+      // Todos pero filtrar futuros (solo mostrar hasta fin del mes siguiente)
+      const mesSiguiente=new Date(hoy.getFullYear(),hoy.getMonth()+1,1);
+      const mesSigStr=`${mesSiguiente.getFullYear()}-${String(mesSiguiente.getMonth()+1).padStart(2,'0')}`;
+      pends=pends.filter(p=>!p.periodo||p.periodo<=mesSigStr);
+    }
+
+    pends=sortByDate(pends);
+
+    if(!pends.length){
+      el.innerHTML='<div class="card"><div class="empty"><div class="empty-icon">✅</div><div class="empty-title">Todo al día</div><div class="empty-sub">No hay obligaciones pendientes este mes</div></div></div>';
+      return;
+    }
+
     let html='';let lastMonth='';
     for(const p of pends){
-      const mes=perLabel(p.periodo);
+      const mes=p.periodo?perLabel(p.periodo):(p.estado==='completado'?perLabel(p.periodo||''):'Sin período');
       if(mes!==lastMonth){html+=`<div class="month-lbl">${mes}</div>`;lastMonth=mes;}
       const d=daysLeft(p.fechaVence);const {icon,cls}=getObIcon(p.tipo);
       html+=`<div class="card" style="margin-bottom:8px;padding:0"><div class="ob-row" onclick="loadCdet('${p.clienteId}')">
         <div class="ob-icon ${cls}" style="width:38px;height:38px;border-radius:10px;font-size:17px">${icon}</div>
-        <div class="ob-info"><div class="ob-name">${p.tipo||'—'}</div><div class="ob-client">${cliMap[p.clienteId]?.nombre||'—'}</div></div>
+        <div class="ob-info"><div class="ob-name">${p.tipo||p.descripcion||'—'}</div><div class="ob-client">${cliMap[p.clienteId]?.nombre||'—'}</div></div>
         <div class="ob-right">${getStatusChip(d)}<div class="ob-date">${fmtDateShort(p.fechaVence)}</div></div>
       </div></div>`;
     }
@@ -1184,11 +1250,43 @@ window.openMOGlobal=async function(){
   om('m-ob');
 };
 
+// Limpiar TODOS los pendientes futuros acumulados
+window.limpiarTodosFuturos=async function(){
+  if(!confirm('¿Eliminar pendientes futuros duplicados? Solo se mantendrá el más próximo por cada obligación.')) return;
+  try{
+    toast('Limpiando...','');
+    const snap=await getDocs(query(collection(db,'pendientes'),where('estado','==','pendiente')));
+    const hoy=new Date();
+    const mesActual=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+    // Agrupar por clienteId+obligacionId
+    const grupos={};
+    snap.docs.forEach(d=>{
+      const p=d.data();
+      if(!p.obligacionId||p.manual) return;
+      const key=`${p.clienteId}__${p.obligacionId}`;
+      if(!grupos[key]) grupos[key]=[];
+      grupos[key].push({id:d.id,...p});
+    });
+    let eliminados=0;
+    for(const key of Object.keys(grupos)){
+      const items=grupos[key].sort((a,b)=>(a.periodo||'').localeCompare(b.periodo||''));
+      if(items.length<=1) continue;
+      // Mantener solo el primero (mas proximo), eliminar el resto
+      for(let i=1;i<items.length;i++){
+        await deleteDoc(doc(db,'pendientes',items[i].id));
+        eliminados++;
+      }
+    }
+    await loadAllData();
+    toast(`✓ ${eliminados} pendiente${eliminados!==1?'s':''} eliminado${eliminados!==1?'s':''}`, 'ok');
+  }catch(e){console.error(e);toast('Error','err');}
+};
+
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='block';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
 </script>
 
 <script>
-if('serviceWorker' in navigator){
+if('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com'){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js').catch(e=>console.log('SW error',e));
   });
