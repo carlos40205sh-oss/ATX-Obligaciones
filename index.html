@@ -603,9 +603,15 @@ select.form-input{cursor:pointer}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 const firebaseConfig={apiKey:"AIzaSyDA9t2kF4oXLzeHPpVdu1YVbB2NgOIN0_k",authDomain:"atx-obligaciones.firebaseapp.com",projectId:"atx-obligaciones",storageBucket:"atx-obligaciones.firebasestorage.app",messagingSenderId:"219319168826",appId:"1:219319168826:web:525e18668e835e07736a03"};
 const fbApp=initializeApp(firebaseConfig), auth=getAuth(fbApp), db=getFirestore(fbApp);
+const messaging = getMessaging(fbApp);
+
+// VAPID Key de Firebase Cloud Messaging
+// La obtenés en: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = 'BNGncWckmB-6Ub2f1l2H7GUS2Z_3XEuy57eo-ycq90o3q7OhtzlyoWy0MjYaVZe3SJ1iZvJFRLX2gKIazPAiATA';
 let CU=null, CC=null, pendDoneId=null, editCliId=null, editTOId=null, editPendId=null;
 let allClientes=[], allPendientes=[], allObligaciones=[], cliFilter='todos', obFilter='todos';
 
@@ -1319,7 +1325,66 @@ window.limpiarTodosFuturos=async function(){
   }catch(e){console.error(e);toast('Error','err');}
 };
 
-window.enableNotif=async function(){if(!('Notification'in window)){toast('Navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='block';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
+window.enableNotif=async function(){
+  if(!('Notification' in window)){toast('Navegador no soporta notificaciones','err');return;}
+  try{
+    const permiso=await Notification.requestPermission();
+    if(permiso!=='granted'){toast('Permiso denegado — activá notificaciones en ajustes','err');return;}
+
+    // Registrar service worker si no está
+    let swReg=null;
+    if('serviceWorker' in navigator){
+      swReg=await navigator.serviceWorker.register('./sw.js');
+      await navigator.serviceWorker.ready;
+    }
+
+    // Obtener token FCM
+    if(!VAPID_KEY||VAPID_KEY==='BNGncWckmB-6Ub2f1l2H7GUS2Z_3XEuy57eo-ycq90o3q7OhtzlyoWy0MjYaVZe3SJ1iZvJFRLX2gKIazPAiATA'){
+      toast('Falta configurar VAPID key','err');
+      document.getElementById('btn-notif').style.display='none';
+      document.getElementById('notif-ok').style.display='block';
+      document.getElementById('notif-ok').textContent='✓ Notificaciones locales activadas';
+      return;
+    }
+
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:swReg});
+    if(!token){toast('No se pudo obtener token FCM','err');return;}
+
+    // Guardar token en Firestore con info del usuario
+    const tokenData={
+      token, uid:CU.uid, email:CU.email,
+      updatedAt:serverTimestamp(),
+      userAgent:navigator.userAgent.substring(0,100)
+    };
+
+    // Buscar si ya existe token para este usuario
+    const existing=await getDocs(query(collection(db,'fcm_tokens'),where('uid','==',CU.uid)));
+    if(existing.empty){
+      await addDoc(collection(db,'fcm_tokens'),tokenData);
+    } else {
+      await updateDoc(doc(db,'fcm_tokens',existing.docs[0].id),tokenData);
+    }
+
+    document.getElementById('btn-notif').style.display='none';
+    document.getElementById('notif-ok').style.display='block';
+    document.getElementById('notif-ok').textContent='✓ Notificaciones activadas';
+    toast('✓ Notificaciones activadas correctamente','ok');
+
+    // Escuchar mensajes cuando la app está abierta
+    onMessage(messaging,(payload)=>{
+      const {title,body}=payload.notification||{};
+      toast(`🔔 ${title}: ${body}`,'');
+    });
+
+  }catch(e){
+    console.error('enableNotif error',e);
+    // Si falla FCM, al menos activar notificaciones locales
+    document.getElementById('btn-notif').style.display='none';
+    document.getElementById('notif-ok').style.display='block';
+    document.getElementById('notif-ok').textContent='✓ Notificaciones locales activadas';
+    toast('Notificaciones locales activadas','ok');
+  }
+};
 </script>
 
 <script>
