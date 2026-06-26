@@ -1329,61 +1329,49 @@ window.enableNotif=async function(){
   if(!('Notification' in window)){toast('Navegador no soporta notificaciones','err');return;}
   try{
     const permiso=await Notification.requestPermission();
-    if(permiso!=='granted'){toast('Permiso denegado — activá notificaciones en ajustes','err');return;}
+    if(permiso!=='granted'){toast('Permiso denegado','err');return;}
 
-    // Registrar service worker si no está
+    // Registrar sw.js (tiene FCM integrado)
     let swReg=null;
-    if('serviceWorker' in navigator){
-      swReg=await navigator.serviceWorker.register('./sw.js');
-      await navigator.serviceWorker.ready;
-    }
-
-    // Registrar firebase-messaging-sw.js para FCM
-    let fcmSwReg=null;
     try{
-      fcmSwReg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-      await fcmSwReg.update();
-    }catch(swErr){
-      console.warn('FCM SW error:',swErr);
-    }
+      swReg=await navigator.serviceWorker.register('./sw.js');
+      await swReg.update();
+      await navigator.serviceWorker.ready;
+      console.log('SW listo:', swReg.scope);
+    }catch(e){ console.warn('SW error:',e); }
 
-    // Obtener token FCM
-    const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:fcmSwReg||swReg});
-    if(!token){toast('No se pudo obtener token FCM','err');return;}
+    // Obtener token FCM usando sw.js
+    let token=null;
+    try{
+      token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:swReg});
+      console.log('Token FCM:', token ? token.substring(0,20)+'...' : 'null');
+    }catch(e){ console.warn('getToken error:',e.message); }
 
-    // Guardar token en Firestore con info del usuario
-    const tokenData={
-      token, uid:CU.uid, email:CU.email,
-      updatedAt:serverTimestamp(),
-      userAgent:navigator.userAgent.substring(0,100)
-    };
-
-    // Buscar si ya existe token para este usuario
-    const existing=await getDocs(query(collection(db,'fcm_tokens'),where('uid','==',CU.uid)));
-    if(existing.empty){
-      await addDoc(collection(db,'fcm_tokens'),tokenData);
+    if(token){
+      const data={token, uid:CU.uid, email:CU.email, updatedAt:serverTimestamp()};
+      const ex=await getDocs(query(collection(db,'fcm_tokens'),where('uid','==',CU.uid)));
+      if(ex.empty){ await addDoc(collection(db,'fcm_tokens'),data); }
+      else{ await updateDoc(doc(db,'fcm_tokens',ex.docs[0].id),data); }
+      toast('✓ Notificaciones activadas','ok');
     } else {
-      await updateDoc(doc(db,'fcm_tokens',existing.docs[0].id),tokenData);
+      toast('✓ Notificaciones del navegador activadas','ok');
     }
 
     document.getElementById('btn-notif').style.display='none';
     document.getElementById('notif-ok').style.display='block';
     document.getElementById('notif-ok').textContent='✓ Notificaciones activadas';
-    toast('✓ Notificaciones activadas correctamente','ok');
 
-    // Escuchar mensajes cuando la app está abierta
-    onMessage(messaging,(payload)=>{
-      const {title,body}=payload.notification||{};
-      toast(`🔔 ${title}: ${body}`,'');
-    });
+    try{
+      onMessage(messaging,(p)=>{
+        const title=p.notification?.title||'ATX';
+        const body=p.notification?.body||'';
+        toast('🔔 '+title+(body?' — '+body:''),'');
+      });
+    }catch(e){}
 
   }catch(e){
-    console.error('enableNotif error',e);
-    // Si falla FCM, al menos activar notificaciones locales
-    document.getElementById('btn-notif').style.display='none';
-    document.getElementById('notif-ok').style.display='block';
-    document.getElementById('notif-ok').textContent='✓ Notificaciones locales activadas';
-    toast('Notificaciones locales activadas','ok');
+    console.error('enableNotif:',e);
+    toast('Error activando notificaciones: '+e.message,'err');
   }
 };
 </script>
