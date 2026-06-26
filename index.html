@@ -701,15 +701,36 @@ function getStatusChip(dias){
   if(dias<=7) return '<span class="chip chip-orange">Por vencer</span>';
   return '<span class="chip chip-blue">Pendiente</span>';
 }
+// Logos de entidades CR
+const LOGOS={
+  hacienda: 'https://www.hacienda.go.cr/img/logo-hacienda.png',
+  ccss:     'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Escudo_CCSS.svg/120px-Escudo_CCSS.svg.png',
+  ins:      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/INS_logo.svg/120px-INS_logo.svg.png',
+  muni:     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Escudo_de_Costa_Rica.svg/80px-Escudo_de_Costa_Rica.svg.png',
+};
+
 function getObIcon(tipo){
-  if(!tipo) return {icon:'📋',cls:'ob-icon-blue'};
+  if(!tipo) return {icon:'📋',cls:'ob-icon-blue',logo:null};
   const t=tipo.toLowerCase();
-  if(t.includes('iva')||t.includes('104')) return {icon:'🧾',cls:'ob-icon-red'};
-  if(t.includes('ccss')) return {icon:'👥',cls:'ob-icon-green'};
-  if(t.includes('renta')||t.includes('151')) return {icon:'📄',cls:'ob-icon-orange'};
-  if(t.includes('ins')) return {icon:'🛡️',cls:'ob-icon-blue'};
-  if(t.includes('muni')) return {icon:'🏛️',cls:'ob-icon-purple'};
-  return {icon:'📋',cls:'ob-icon-blue'};
+  if(t.includes('iva')||t.includes('104')||t.includes('renta')||t.includes('151')||t.includes('195')||t.includes('140')||t.includes('timbre'))
+    return {icon:'🏛️',cls:'ob-icon-red',logo:'hacienda',bg:'#E53935'};
+  if(t.includes('ccss'))
+    return {icon:'👥',cls:'ob-icon-green',logo:'ccss',bg:'#2E7D32'};
+  if(t.includes('ins'))
+    return {icon:'🛡️',cls:'ob-icon-blue',logo:'ins',bg:'#1565C0'};
+  if(t.includes('muni')||t.includes('patente'))
+    return {icon:'🏛️',cls:'ob-icon-purple',logo:'muni',bg:'#6A1B9A'};
+  return {icon:'📋',cls:'ob-icon-blue',logo:null,bg:'#1565C0'};
+}
+
+function obIconHTML(tipo, size=38){
+  const {icon,cls,logo,bg}=getObIcon(tipo);
+  if(logo&&LOGOS[logo]){
+    return `<div style="width:${size}px;height:${size}px;border-radius:${size*0.27}px;background:white;border:1.5px solid #E8E8F0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+      <img src="${LOGOS[logo]}" style="width:${size*0.72}px;height:${size*0.72}px;object-fit:contain" onerror="this.parentNode.innerHTML='<span style=\'font-size:${size*0.45}px\'>${icon}</span>'">
+    </div>`;
+  }
+  return `<div class="ob-icon ${cls}" style="width:${size}px;height:${size}px;border-radius:${size*0.27}px;font-size:${size*0.45}px;flex-shrink:0">${icon}</div>`;
 }
 function getRespTag(r){
   if(r==='Carlos') return '<span class="resp-tag resp-carlos">👤 Carlos</span>';
@@ -857,9 +878,8 @@ function renderDash(){
   const el=document.getElementById('dash-list');
   if(!top.length){el.innerHTML='<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">Sin pendientes</div><div class="empty-sub">Todo al día</div></div>';return;}
   el.innerHTML=top.map(p=>{
-    const d=daysLeft(p.fechaVence);const {icon,cls}=getObIcon(p.tipo);
-    return `<div class="ob-row" onclick="loadCdet('${p.clienteId}')">
-      <div class="ob-icon ${cls}">${icon}</div>
+    const d=daysLeft(p.fechaVence);return `<div class="ob-row" onclick="loadCdet('${p.clienteId}')">
+      ${obIconHTML(p.tipo,42)}
       <div class="ob-info"><div class="ob-name">${p.tipo||p.descripcion||'—'}</div><div class="ob-client">${cliMap[p.clienteId]?.nombre||'—'}</div></div>
       <div class="ob-right"><div class="ob-date">${fmtDateShort(p.fechaVence)}</div>${getStatusChip(d)}</div>
     </div>`;
@@ -928,12 +948,11 @@ function renderPendList(pends){
   const el=document.getElementById('pend-list');
   if(!pends.length){el.innerHTML='<div class="card" style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Sin pendientes</div>';return;}
   el.innerHTML=pends.map(p=>{
-    const d=daysLeft(p.fechaVence);const {icon,cls}=getObIcon(p.tipo);
-    const manualTag=p.manual?'<span class="chip chip-purple" style="font-size:10px">Libre</span>':'';
+    const d=daysLeft(p.fechaVence);const manualTag=p.manual?'<span class="chip chip-purple" style="font-size:10px">Libre</span>':'';
     return `<div class="card" style="margin-bottom:10px;padding:0">
       <div class="ob-row" style="border-bottom:1px solid var(--border)">
         <div class="chk-btn" id="chk-${p.id}" onclick="openDone('${p.id}','${(p.tipo||p.descripcion||'').replace(/'/g,"\\'")}','${perLabel(p.periodo).replace(/'/g,"\\'")}')">✓</div>
-        <div class="ob-icon ${cls}" style="width:36px;height:36px;border-radius:10px;font-size:16px">${icon}</div>
+        ${obIconHTML(p.tipo,36)}
         <div class="ob-info">
           <div class="ob-name" id="pct-${p.id}">${p.tipo||p.descripcion||'—'} ${manualTag}</div>
           <div class="ob-client">${p.periodo?perLabel(p.periodo):''} ${p.nota?'· '+p.nota:''}</div>
@@ -959,7 +978,7 @@ function renderHist(docs){
     const tag=tard<=0?'<span class="chip chip-green" style="font-size:10px">A tiempo</span>':'<span class="chip chip-red" style="font-size:10px">'+tard+'d tarde</span>';
     const {icon,cls}=getObIcon(p.tipo);
     return `<div class="ob-row">
-      <div class="ob-icon ${cls}" style="width:36px;height:36px;border-radius:10px;font-size:16px">${icon}</div>
+      ${obIconHTML(p.tipo,36)}
       <div class="ob-info"><div class="ob-name">${p.tipo||p.descripcion||'—'}</div><div class="ob-client">${perLabel(p.periodo)||'—'} · ${p.realizadoPor||'—'}</div></div>
       <div class="ob-right">${tag}<div class="ob-date">${fmtDate(p.completadoEn)}</div></div>
     </div>`;
@@ -1015,9 +1034,9 @@ async function renderOb(){
     for(const p of pends){
       const mes=p.periodo?perLabel(p.periodo):(p.estado==='completado'?perLabel(p.periodo||''):'Sin período');
       if(mes!==lastMonth){html+=`<div class="month-lbl">${mes}</div>`;lastMonth=mes;}
-      const d=daysLeft(p.fechaVence);const {icon,cls}=getObIcon(p.tipo);
+      const d=daysLeft(p.fechaVence);
       html+=`<div class="card" style="margin-bottom:8px;padding:0"><div class="ob-row" onclick="loadCdet('${p.clienteId}')">
-        <div class="ob-icon ${cls}" style="width:38px;height:38px;border-radius:10px;font-size:17px">${icon}</div>
+        ${obIconHTML(p.tipo,38)}
         <div class="ob-info"><div class="ob-name">${p.tipo||p.descripcion||'—'}</div><div class="ob-client">${cliMap[p.clienteId]?.nombre||'—'}</div></div>
         <div class="ob-right">${getStatusChip(d)}<div class="ob-date">${fmtDateShort(p.fechaVence)}</div></div>
       </div></div>`;
@@ -1131,10 +1150,10 @@ window.loadEnc=async function(enc){
     const cliMap={};allClientes.forEach(c=>{cliMap[c.id]=c;});
     if(!pends.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-icon">✓</div><div class="empty-title">Sin pendientes para '+enc+'</div></div></div>';return;}
     el.innerHTML=pends.map(p=>{
-      const d=daysLeft(p.fechaVence);const {icon,cls}=getObIcon(p.tipo);
+      const d=daysLeft(p.fechaVence);
       return `<div class="card" style="margin-bottom:8px;padding:0"><div class="ob-row">
         <div class="chk-btn" id="chk-${p.id}" onclick="openDone('${p.id}','${(p.tipo||p.descripcion||'').replace(/'/g,"\\'")}','${perLabel(p.periodo).replace(/'/g,"\\'")}')">✓</div>
-        <div class="ob-icon ${cls}" style="width:36px;height:36px;border-radius:10px;font-size:16px">${icon}</div>
+        ${obIconHTML(p.tipo,36)}
         <div class="ob-info"><div class="ob-name">${p.tipo||p.descripcion||'—'}</div><div class="ob-client">${cliMap[p.clienteId]?.nombre||'—'}${p.periodo?' · '+perLabel(p.periodo):''}</div></div>
         <div class="ob-right">${getStatusChip(d)}<div class="ob-date">${fmtDateShort(p.fechaVence)}</div></div>
       </div></div>`;
@@ -1212,7 +1231,7 @@ async function loadCfg(){
       const t=d.data();
       const row=document.createElement('div');
       row.className='ob-row';
-      row.innerHTML=`<div class="ob-icon ob-icon-purple" style="width:36px;height:36px;border-radius:10px;font-size:16px">📋</div>
+      row.innerHTML=`${obIconHTML(t.nombre,36)}
         <div class="ob-info"><div class="ob-name">${t.nombre}</div><div class="ob-client">${t.descripcion||''} · ${fl[t.frecuencia]||t.frecuencia} · Día ${t.dia||'—'}</div></div>
         <button class="btn btn-ghost btn-sm" onclick="editTO('${d.id}')">✏️</button>`;
       return row.outerHTML;
