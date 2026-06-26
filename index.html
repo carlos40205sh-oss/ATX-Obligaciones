@@ -701,36 +701,73 @@ function getStatusChip(dias){
   if(dias<=7) return '<span class="chip chip-orange">Por vencer</span>';
   return '<span class="chip chip-blue">Pendiente</span>';
 }
-// Logos de entidades CR
-const LOGOS={
-  hacienda: 'https://www.hacienda.go.cr/img/logo-hacienda.png',
-  ccss:     'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Escudo_CCSS.svg/120px-Escudo_CCSS.svg.png',
-  ins:      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/INS_logo.svg/120px-INS_logo.svg.png',
-  muni:     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Escudo_de_Costa_Rica.svg/80px-Escudo_de_Costa_Rica.svg.png',
-};
-
-function getObIcon(tipo){
-  if(!tipo) return {icon:'📋',cls:'ob-icon-blue',logo:null};
+function getObType(tipo){
+  if(!tipo) return 'otro';
   const t=tipo.toLowerCase();
-  if(t.includes('iva')||t.includes('104')||t.includes('renta')||t.includes('151')||t.includes('195')||t.includes('140')||t.includes('timbre'))
-    return {icon:'🏛️',cls:'ob-icon-red',logo:'hacienda',bg:'#E53935'};
-  if(t.includes('ccss'))
-    return {icon:'👥',cls:'ob-icon-green',logo:'ccss',bg:'#2E7D32'};
-  if(t.includes('ins'))
-    return {icon:'🛡️',cls:'ob-icon-blue',logo:'ins',bg:'#1565C0'};
-  if(t.includes('muni')||t.includes('patente'))
-    return {icon:'🏛️',cls:'ob-icon-purple',logo:'muni',bg:'#6A1B9A'};
-  return {icon:'📋',cls:'ob-icon-blue',logo:null,bg:'#1565C0'};
+  if(t.includes('iva')||t.includes('104')) return 'iva';
+  if(t.includes('renta')||t.includes('151')||t.includes('195')) return 'renta';
+  if(t.includes('timbre')) return 'timbre';
+  if(t.includes('140')) return 'hacienda';
+  if(t.includes('ccss')) return 'ccss';
+  if(t.includes('ins')) return 'ins';
+  if(t.includes('muni')||t.includes('patente')) return 'muni';
+  return 'otro';
 }
 
 function obIconHTML(tipo, size=38){
-  const {icon,cls,logo,bg}=getObIcon(tipo);
-  if(logo&&LOGOS[logo]){
-    return `<div style="width:${size}px;height:${size}px;border-radius:${size*0.27}px;background:white;border:1.5px solid #E8E8F0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-      <img src="${LOGOS[logo]}" style="width:${size*0.72}px;height:${size*0.72}px;object-fit:contain" onerror="this.parentNode.innerHTML='<span style=\'font-size:${size*0.45}px\'>${icon}</span>'">
+  const r=size*0.27; const type=getObType(tipo);
+  const s=size+'px'; const rs=r+'px';
+
+  // Hacienda (rojo) - letras MH
+  if(type==='iva'||type==='renta'||type==='timbre'||type==='hacienda'){
+    return `<div style="width:${s};height:${s};border-radius:${rs};background:#C62828;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="${size*0.7}" height="${size*0.7}" viewBox="0 0 40 40" fill="none">
+        <text x="4" y="26" font-family="Arial" font-weight="800" font-size="13" fill="white">MH</text>
+        <line x1="4" y1="30" x2="36" y2="30" stroke="white" stroke-width="2.5"/>
+      </svg>
     </div>`;
   }
-  return `<div class="ob-icon ${cls}" style="width:${size}px;height:${size}px;border-radius:${size*0.27}px;font-size:${size*0.45}px;flex-shrink:0">${icon}</div>`;
+
+  // CCSS (verde) - letras CCSS
+  if(type==='ccss'){
+    return `<div style="width:${s};height:${s};border-radius:${rs};background:#1B5E20;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="${size*0.78}" height="${size*0.78}" viewBox="0 0 44 44" fill="none">
+        <text x="2" y="18" font-family="Arial" font-weight="900" font-size="10" fill="white">CC</text>
+        <text x="2" y="32" font-family="Arial" font-weight="900" font-size="10" fill="white">SS</text>
+        <rect x="1" y="1" width="42" height="42" rx="4" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>`;
+  }
+
+  // INS (azul) - escudo
+  if(type==='ins'){
+    return `<div style="width:${s};height:${s};border-radius:${rs};background:#0D47A1;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="${size*0.65}" height="${size*0.65}" viewBox="0 0 36 36" fill="none">
+        <path d="M18 3 L33 9 L33 20 C33 28 18 34 18 34 C18 34 3 28 3 20 L3 9 Z" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="2"/>
+        <text x="9" y="23" font-family="Arial" font-weight="900" font-size="11" fill="white">INS</text>
+      </svg>
+    </div>`;
+  }
+
+  // Municipalidad (morado) - edificio
+  if(type==='muni'){
+    return `<div style="width:${s};height:${s};border-radius:${rs};background:#6A1B9A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="${size*0.65}" height="${size*0.65}" viewBox="0 0 36 36" fill="none">
+        <rect x="4" y="18" width="28" height="14" fill="rgba(255,255,255,0.9)"/>
+        <polygon points="18,4 2,18 34,18" fill="white"/>
+        <rect x="14" y="22" width="8" height="10" fill="#6A1B9A"/>
+        <rect x="6" y="20" width="5" height="5" fill="#6A1B9A"/>
+        <rect x="25" y="20" width="5" height="5" fill="#6A1B9A"/>
+      </svg>
+    </div>`;
+  }
+
+  // Default - gris con icono
+  const emojis={iva:'🧾',renta:'📄',ccss:'👥',ins:'🛡️',muni:'🏛️',otro:'📋'};
+  const colors={iva:'#E53935',renta:'#F57C00',ccss:'#2E7D32',ins:'#1565C0',muni:'#6A1B9A',otro:'#1565C0'};
+  const emoji=emojis[type]||'📋';
+  const color=colors[type]||'#1565C0';
+  return `<div style="width:${s};height:${s};border-radius:${rs};background:${color}20;display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px;flex-shrink:0">${emoji}</div>`;
 }
 function getRespTag(r){
   if(r==='Carlos') return '<span class="resp-tag resp-carlos">👤 Carlos</span>';
