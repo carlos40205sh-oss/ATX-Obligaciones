@@ -1,8 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Cache normal
-const CACHE = 'atx-v4';
+const CACHE = 'atx-v5';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,7 +14,11 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if(!e.request.url.startsWith(self.location.origin)) return;
-  e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(ca=>ca.put(e.request,c));return r;}).catch(()=>caches.match(e.request)));
+  e.respondWith(
+    fetch(e.request)
+      .then(r=>{const cl=r.clone();caches.open(CACHE).then(c=>c.put(e.request,cl));return r;})
+      .catch(()=>caches.match(e.request))
+  );
 });
 
 // Firebase Messaging
@@ -30,27 +33,38 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Cuando la app está en BACKGROUND
 messaging.onBackgroundMessage(function(payload) {
-  console.log('ATX push:', payload);
-  const title = payload.notification?.title || payload.data?.title || 'ATX';
-  const body  = payload.notification?.body  || payload.data?.body  || 'Tenés una obligación próxima';
+  console.log('ATX background push recibido:', JSON.stringify(payload));
+
+  // Con webpush, FCM muestra la notificación automáticamente
+  // Este handler es solo para personalizar si es necesario
+  const title = payload.notification?.title
+             || payload.data?.title
+             || 'ATX — Recordatorio';
+  const body  = payload.notification?.body
+             || payload.data?.body
+             || 'Tenés una obligación próxima';
+
   return self.registration.showNotification(title, {
     body,
-    icon:     '/ATX-Obligaciones/icon-192.png',
-    badge:    '/ATX-Obligaciones/icon-192.png',
+    icon:     'https://carlos40205sh-oss.github.io/ATX-Obligaciones/icon-192.png',
+    badge:    'https://carlos40205sh-oss.github.io/ATX-Obligaciones/icon-192.png',
     vibrate:  [200, 100, 200],
     tag:      title,
     renotify: true,
-    data:     { url: '/ATX-Obligaciones/' }
+    data:     { url: 'https://carlos40205sh-oss.github.io/ATX-Obligaciones/' }
   });
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(
-    clients.matchAll({type:'window',includeUncontrolled:true}).then(cls=>{
-      for(const cl of cls){ if(cl.url.includes('ATX-Obligaciones')) return cl.focus(); }
-      return clients.openWindow('/ATX-Obligaciones/');
+    clients.matchAll({type:'window', includeUncontrolled:true}).then(cls => {
+      for(const cl of cls){
+        if(cl.url.includes('ATX-Obligaciones')) return cl.focus();
+      }
+      return clients.openWindow('https://carlos40205sh-oss.github.io/ATX-Obligaciones/');
     })
   );
 });
