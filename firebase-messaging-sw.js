@@ -12,23 +12,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Manejar notificaciones cuando la app está en background
 messaging.onBackgroundMessage(function(payload) {
-  console.log('ATX background message:', payload);
-  const { title, body } = payload.notification || {};
-  self.registration.showNotification(title || 'ATX', {
-    body:    body || 'Tenés un vencimiento próximo',
-    icon:    './icon-192.png',
-    badge:   './icon-192.png',
+  console.log('ATX push recibido:', payload);
+  const title = payload.notification?.title || 'ATX — Recordatorio';
+  const body  = payload.notification?.body  || 'Tenés un vencimiento próximo';
+  self.registration.showNotification(title, {
+    body,
+    icon:    '/ATX-Obligaciones/icon-192.png',
+    badge:   '/ATX-Obligaciones/icon-192.png',
     vibrate: [200, 100, 200],
-    data:    { url: './' }
+    data:    { url: '/ATX-Obligaciones/' }
   });
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(clients.matchAll({type:'window'}).then(cls=>{
-    if(cls.length) return cls[0].focus();
-    return clients.openWindow('./');
-  }));
+  e.waitUntil(
+    clients.matchAll({type:'window', includeUncontrolled:true}).then(cls => {
+      for(const cl of cls){
+        if(cl.url.includes('ATX-Obligaciones')) return cl.focus();
+      }
+      return clients.openWindow('/ATX-Obligaciones/');
+    })
+  );
 });

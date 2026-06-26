@@ -1338,16 +1338,17 @@ window.enableNotif=async function(){
       await navigator.serviceWorker.ready;
     }
 
-    // Obtener token FCM
-    if(!VAPID_KEY||VAPID_KEY==='BNGncWckmB-6Ub2f1l2H7GUS2Z_3XEuy57eo-ycq90o3q7OhtzlyoWy0MjYaVZe3SJ1iZvJFRLX2gKIazPAiATA'){
-      toast('Falta configurar VAPID key','err');
-      document.getElementById('btn-notif').style.display='none';
-      document.getElementById('notif-ok').style.display='block';
-      document.getElementById('notif-ok').textContent='✓ Notificaciones locales activadas';
-      return;
+    // Registrar firebase-messaging-sw.js para FCM
+    let fcmSwReg=null;
+    try{
+      fcmSwReg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+      await fcmSwReg.update();
+    }catch(swErr){
+      console.warn('FCM SW error:',swErr);
     }
 
-    const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:swReg});
+    // Obtener token FCM
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:fcmSwReg||swReg});
     if(!token){toast('No se pudo obtener token FCM','err');return;}
 
     // Guardar token en Firestore con info del usuario
