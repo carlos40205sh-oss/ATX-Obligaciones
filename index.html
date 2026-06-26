@@ -361,7 +361,7 @@ select.form-input{cursor:pointer}
       <!-- CLIENTE DETALLE -->
       <div class="view" id="v-cdet">
         <div class="cdet-hero">
-          <div class="cdet-back" onclick="nav('cli')">← Clientes</div>
+          <div class="cdet-back" id="cdet-back-btn" onclick="nav('cli')">← Clientes</div>
           <div class="cdet-av" id="cdet-av">—</div>
           <div class="cdet-name" id="cdet-name">—</div>
           <div class="cdet-meta" id="cdet-meta">—</div>
@@ -390,7 +390,7 @@ select.form-input{cursor:pointer}
           <div class="ftab" id="obtab-pend" onclick="setObFilter('pendiente')">Pendientes</div>
           <div class="ftab" id="obtab-done" onclick="setObFilter('completado')">Completadas</div>
         </div>
-        <div id="ob-list" style="margin:0 16px 16px">
+        <div id="ob-list" style="margin:0 16px 80px">
           <div class="card" style="padding:24px;text-align:center"><div class="spinner" style="border-top-color:var(--purple);border-color:var(--border);margin:auto"></div></div>
         </div>
       </div>
@@ -457,6 +457,10 @@ select.form-input{cursor:pointer}
       </div>
     </div>
 
+    <!-- FAB: Nuevo cliente -->
+    <div class="fab" id="fab-cli" style="display:none;background:var(--purple)" onclick="openMC()">＋</div>
+    <!-- FAB: Nueva obligación global -->
+    <div class="fab" id="fab-ob" style="display:none;background:var(--purple)" onclick="openMOGlobal()">＋</div>
   </div><!-- /app-body -->
 </div><!-- /pg-app -->
 
@@ -639,13 +643,20 @@ function showPage(id){
 
 // ── NAV ──
 const VIEW_TITLES={dash:'Inicio',cli:'Clientes',cdet:'Clientes',ob:'Obligaciones',enc:'Por encargado',ctrl:'Tabla control',cfg:'Tipos',notif:'Notificaciones'};
-window.nav=function(view){
+window.nav=function(view, pushState=true){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
   document.querySelectorAll('.bn-item,.sd-item').forEach(n=>n.classList.remove('active'));
   const vel=document.getElementById('v-'+view); if(vel) vel.classList.add('show');
   const bel=document.getElementById('bn-'+view); if(bel) bel.classList.add('active');
   const sel=document.getElementById('sdi-'+view); if(sel) sel.classList.add('active');
   document.getElementById('header-title').textContent=VIEW_TITLES[view]||'ATX';
+  // FABs
+  const fabCli=document.getElementById('fab-cli');
+  const fabOb=document.getElementById('fab-ob');
+  if(fabCli) fabCli.style.display=view==='cli'?'flex':'none';
+  if(fabOb) fabOb.style.display=view==='ob'?'flex':'none';
+  // History for Android back button
+  if(pushState) history.pushState({view}, '', '#'+view);
   if(view==='dash') renderDash();
   if(view==='cli') renderCli();
   if(view==='ob') renderOb();
@@ -653,6 +664,11 @@ window.nav=function(view){
   if(view==='ctrl') initCtrl();
   if(view==='cfg') loadCfg();
 };
+// Handle Android back button
+window.addEventListener('popstate', function(e){
+  const view=e.state?.view||'dash';
+  nav(view, false);
+});
 
 // ── LOAD ALL DATA (cached) ──
 async function loadAllData(){
@@ -713,12 +729,42 @@ async function seedTipos(){
 }
 
 // ── NEXT DATE ──
-function nextDate(frecuencia,dia){
-  const hoy=new Date();hoy.setHours(0,0,0,0);const d=parseInt(dia)||15;
-  if(frecuencia==='mensual'){let f=new Date(hoy.getFullYear(),hoy.getMonth(),d);if(f<=hoy)f=new Date(hoy.getFullYear(),hoy.getMonth()+1,d);return f;}
-  if(frecuencia==='trimestral'){const tm=[2,5,8,11];for(let i=0;i<8;i++){const m=(hoy.getMonth()+i)%12;const y=hoy.getFullYear()+Math.floor((hoy.getMonth()+i)/12);if(tm.includes(m)){const f=new Date(y,m,d);if(f>hoy)return f;}}return new Date(hoy.getFullYear(),hoy.getMonth()+3,d);}
-  if(frecuencia==='semestral'){const sm=[5,11];for(let i=0;i<14;i++){const m=(hoy.getMonth()+i)%12;const y=hoy.getFullYear()+Math.floor((hoy.getMonth()+i)/12);if(sm.includes(m)){const f=new Date(y,m,d);if(f>hoy)return f;}}return new Date(hoy.getFullYear(),hoy.getMonth()+6,d);}
-  if(frecuencia==='anual'){let f=new Date(hoy.getFullYear(),0,d);if(f<=hoy)f=new Date(hoy.getFullYear()+1,0,d);return f;}
+function nextDate(frecuencia, dia){
+  // Pendiente se activa el dia 1 del mes correspondiente
+  // pero vence el dia configurado
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const d=parseInt(dia)||15;
+
+  if(frecuencia==='mensual'){
+    // Siguiente mes que no tenga pendiente activo
+    let f=new Date(hoy.getFullYear(),hoy.getMonth(),d);
+    if(f<=hoy) f=new Date(hoy.getFullYear(),hoy.getMonth()+1,d);
+    return f;
+  }
+  if(frecuencia==='trimestral'){
+    // Trimestres CR: mar(2), jun(5), sep(8), dic(11)
+    const tm=[2,5,8,11];
+    for(let i=0;i<8;i++){
+      const m=(hoy.getMonth()+i)%12;
+      const y=hoy.getFullYear()+Math.floor((hoy.getMonth()+i)/12);
+      if(tm.includes(m)){const f=new Date(y,m,d);if(f>hoy)return f;}
+    }
+    return new Date(hoy.getFullYear(),hoy.getMonth()+3,d);
+  }
+  if(frecuencia==='semestral'){
+    const sm=[5,11];
+    for(let i=0;i<14;i++){
+      const m=(hoy.getMonth()+i)%12;
+      const y=hoy.getFullYear()+Math.floor((hoy.getMonth()+i)/12);
+      if(sm.includes(m)){const f=new Date(y,m,d);if(f>hoy)return f;}
+    }
+    return new Date(hoy.getFullYear(),hoy.getMonth()+6,d);
+  }
+  if(frecuencia==='anual'){
+    let f=new Date(hoy.getFullYear(),0,d);
+    if(f<=hoy) f=new Date(hoy.getFullYear()+1,0,d);
+    return f;
+  }
   return new Date(hoy.getFullYear(),hoy.getMonth()+1,d);
 }
 
@@ -987,7 +1033,15 @@ window.openMO=async function(){
 };
 window.onTipoChange=function(){const opt=document.getElementById('mo-tipo').selectedOptions[0];if(!opt?.dataset.freq)return;document.getElementById('mo-freq').value=opt.dataset.freq;document.getElementById('mo-dia').value=opt.dataset.dia;};
 window.saveOb=async function(){
-  if(!CC)return;const tipoId=document.getElementById('mo-tipo').value;if(!tipoId){toast('Seleccioná un tipo','err');return;}
+  const tipoId=document.getElementById('mo-tipo').value;if(!tipoId){toast('Seleccioná un tipo','err');return;}
+  // If no CC, use global client selector
+  if(!CC){
+    const cliSel=document.getElementById('mo-cli-sel');
+    if(!cliSel||!cliSel.value){toast('Seleccioná un cliente','err');return;}
+    const cliDoc=await getDoc(doc(db,'clientes',cliSel.value));
+    if(!cliDoc.exists()){toast('Cliente no encontrado','err');return;}
+    CC={id:cliDoc.id,...cliDoc.data()};
+  }
   try{
     const tDoc=await getDoc(doc(db,'tipos_obligacion',tipoId));const tipo=tDoc.data().nombre;
     const data={clienteId:CC.id,tipoId,tipo,frecuencia:document.getElementById('mo-freq').value,dia:parseInt(document.getElementById('mo-dia').value)||15,aviso:parseInt(document.getElementById('mo-aviso').value)||7,responsable:document.getElementById('mo-resp').value,nota:document.getElementById('mo-nota').value.trim(),activo:true,creadoEn:serverTimestamp(),creadoPor:CU.uid};
@@ -1107,6 +1161,27 @@ window.saveTO=async function(){
   const data={nombre,descripcion:document.getElementById('mto-desc').value.trim(),frecuencia:document.getElementById('mto-freq').value,dia:parseInt(document.getElementById('mto-dia').value)||15,activo:true};
   try{if(editTOId){await updateDoc(doc(db,'tipos_obligacion',editTOId),data);toast('Tipo actualizado','ok');}else{await addDoc(collection(db,'tipos_obligacion'),{...data,creadoPor:CU.uid});toast('Tipo creado','ok');}cm('m-to');loadCfg();}
   catch(e){toast('Error','err');}
+};
+
+// ── NUEVA OBLIGACION GLOBAL (desde vista obligaciones) ──
+window.openMOGlobal=async function(){
+  // Pedir cliente primero
+  if(!allClientes.length){toast('No hay clientes creados aún','err');return;}
+  const options=allClientes.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  // Reutilizamos modal de obligacion pero primero mostramos selector de cliente
+  const sel=document.createElement('div');
+  sel.innerHTML=`<div class="form-group" id="mo-cli-wrap"><label class="form-label">Cliente *</label><select class="form-input" id="mo-cli-sel">${options}</select></div>`;
+  const mObSub=document.getElementById('m-ob-sub');
+  const existingCliWrap=document.getElementById('mo-cli-wrap');
+  if(!existingCliWrap){
+    mObSub.parentNode.insertBefore(sel.firstElementChild, mObSub.nextSibling);
+  }
+  CC=null; // reset so saveOb knows to use selector
+  document.getElementById('m-ob-sub').textContent='Seleccioná el cliente';
+  const snap=await getDocs(collection(db,'tipos_obligacion'));const selTipo=document.getElementById('mo-tipo');
+  selTipo.innerHTML='<option value="">— Seleccionar —</option>';snap.docs.forEach(d=>{const t=d.data();selTipo.innerHTML+=`<option value="${d.id}" data-freq="${t.frecuencia}" data-dia="${t.dia}">${t.nombre}</option>`;});
+  document.getElementById('mo-resp').value='Carlos';
+  om('m-ob');
 };
 
 window.enableNotif=async function(){if(!('Notification'in window)){toast('Navegador no soporta notificaciones','err');return;}const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('btn-notif').style.display='none';document.getElementById('notif-ok').style.display='block';toast('✓ Notificaciones activadas','ok');}else toast('Permiso denegado','err');};
